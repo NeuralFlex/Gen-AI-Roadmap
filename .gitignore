@@ -1,0 +1,16 @@
+# Ignore environment variables
+Interviewer chatbot/.env
+
+# Ignore virtual environments
+Interviewer chatbot/venv/
+
+# Python cache
+Interviewer chatbot/__pycache__/
+*.pyc
+*.pyo
+
+# Jupyter notebook checkpoints
+Interviewer chatbot/.ipynb_checkpoints/
+Interviewer chatbot/venv/
+Interviewer chatbot/__pycache__/
+Interviewer chatbot/.ipynb_checkpoints/
