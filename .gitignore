@@ -1,5 +1,5 @@
 # Ignore environment variables
-Interviewer chatbot/.env
+Interviewer_chatbot/.env
 
 # Ignore virtual environments
 Interviewer chatbot/venv/
@@ -14,3 +14,5 @@ Interviewer chatbot/.ipynb_checkpoints/
 Interviewer chatbot/venv/
 Interviewer chatbot/__pycache__/
 Interviewer chatbot/.ipynb_checkpoints/
+
+.vscode/
