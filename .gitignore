@@ -16,3 +16,4 @@ Interviewer chatbot/__pycache__/
 Interviewer chatbot/.ipynb_checkpoints/
 
 .vscode/
+.env.env
