@@ -1,14 +1,16 @@
-# main.py
 from graph.graph import create_interview_graph
-from utils.logger import setup_logger  
+from utils.logger import setup_logger
 
-logger = setup_logger(__name__)  
+logger = setup_logger(__name__)
+
 
 def main():
     topic = input("What topic do you want interview to be of: ")
     print("\nChoose question style:")
     print("1. Broad, follow-up questions (general, builds on previous answers)")
-    print("2. Narrow, follow-up questions (specific, probes details from previous answers)")
+    print(
+        "2. Narrow, follow-up questions (specific, probes details from previous answers)"
+    )
     print("3. Broad, non-follow-up questions (general, new topic aspects)")
     print("4. Narrow, non-follow-up questions (specific, new topic aspects)")
 
@@ -16,7 +18,7 @@ def main():
         "1": "broad_followup",
         "2": "narrow_followup",
         "3": "broad_nonfollowup",
-        "4": "narrow_nonfollowup"
+        "4": "narrow_nonfollowup",
     }
 
     while True:
@@ -49,8 +51,11 @@ def main():
         logger.info("Interview completed successfully")  # ✅ Log success
         print("\n✅ Interview completed successfully!")
     except Exception as e:
-        logger.exception(f"Interview failed due to error: {e}")  # ✅ Logs full stack trace
+        logger.exception(
+            f"Interview failed due to error: {e}"
+        )  # ✅ Logs full stack trace
         print(f"❌ Interview failed due to error: {e}")
+
 
 if __name__ == "__main__":
     main()

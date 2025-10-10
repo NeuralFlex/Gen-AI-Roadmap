@@ -106,5 +106,4 @@ class GeminiClient:
         return model().dict()
 
 
-# Shared client instance
 gemini_client = GeminiClient()
