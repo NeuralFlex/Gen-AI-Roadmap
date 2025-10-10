@@ -1,15 +1,8 @@
-
-import logging
 from tavily import TavilyClient
 from config.settings import settings
+from utils.logger import setup_logger
 
-# Setup a module-level logger
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)  # Default level, can be configured elsewhere
-ch = logging.StreamHandler()
-formatter = logging.Formatter("[%(asctime)s] [%(levelname)s] %(message)s")
-ch.setFormatter(formatter)
-logger.addHandler(ch)
+logger = setup_logger(__name__)
 
 class TavilyService:
     """
@@ -34,5 +27,4 @@ class TavilyService:
         except Exception as e:
             logger.error(f"Tavily search failed for query '{query}': {e}")
             return []
-
 tavily_service = TavilyService()

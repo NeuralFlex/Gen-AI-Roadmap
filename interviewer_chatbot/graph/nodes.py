@@ -4,6 +4,9 @@ from graph.state import InterviewState
 from services.gemini_client import gemini_client
 from services.tavily_client import tavily_service
 from config.prompts import *
+from utils.logger import setup_logger
+
+logger = setup_logger(__name__)
 
 # -----------------------------
 # Setup Node
@@ -18,17 +21,17 @@ def setup_node(state: InterviewState) -> InterviewState:
     # Validate question_type
     valid_types = {"broad_followup", "narrow_followup", "broad_nonfollowup", "narrow_nonfollowup"}
     if question_type not in valid_types:
-        print(f"⚠️ Invalid question_type '{question_type}', defaulting to 'broad_followup'.")
+        logger.warning(f"Invalid question_type '{question_type}', defaulting to 'broad_followup'.")
         question_type = "broad_followup"
 
     # Fetch initial content safely
     try:
         content_list = tavily_service.search(f"key areas for interview on: {topic}")
         if not isinstance(content_list, list):
-            print("⚠️ Tavily returned invalid content, using empty list.")
+            logger.warning("Tavily returned invalid content, using empty list.")
             content_list = []
     except Exception as e:
-        print(f"⚠️ Error fetching content from Tavily: {e}")
+        logger.error(f"Error fetching content from Tavily: {e}")
         content_list = []
 
     # Initialize messages and first question
@@ -37,9 +40,10 @@ def setup_node(state: InterviewState) -> InterviewState:
         prompt_question = get_setup_prompt(content_list, topic, question_type)
         first_question = gemini_client.generate_content(prompt_question) or "Tell me about your interest in this topic."
     except Exception as e:
-        print(f"⚠️ Error generating first question: {e}")
+        logger.error(f"Error generating first question: {e}")
         first_question = "Tell me about your interest in this topic."
 
+    logger.info(f"Setup complete for topic '{topic}' with question type '{question_type}'.")
     return {
         **state,
         "topic": topic,
@@ -51,7 +55,7 @@ def setup_node(state: InterviewState) -> InterviewState:
         "answers": [],
         "feedback": [],
         "current_question": first_question,
-        "max_questions": state.get("max_questions", 5)  # default 5 if missing
+        "max_questions": state.get("max_questions", 5)
     }
 
 # -----------------------------
@@ -69,6 +73,8 @@ def get_answer_node(state: InterviewState) -> InterviewState:
     answer = state.get("user_input")
     if answer is None:
         answer = input(f"\n❓ Question {state.get('step', 0) + 1}: {current_q}\n💭 Your answer: ").strip()
+
+    logger.info(f"Captured answer for question {state.get('step', 0) + 1}")
 
     new_messages = state.get("messages", []) + [
         {"role": "interviewer", "content": current_q},
@@ -97,13 +103,13 @@ def evaluate_question_node(state: InterviewState) -> InterviewState:
     feedback_list = state.get("feedback", [])
 
     if not questions or not answers:
-        print("⚠️ No questions/answers to evaluate.")
+        logger.warning("No questions/answers to evaluate.")
         return state
 
     last_q = questions[-1]
     last_a = answers[-1]
 
-    # Build transcript including previous feedback
+    # Build transcript
     transcript = ""
     for i in range(len(feedback_list)):
         f = feedback_list[i]
@@ -144,15 +150,13 @@ def evaluate_question_node(state: InterviewState) -> InterviewState:
         a_feedback = gemini_client.safe_parse_json(a_feedback_text, model=AnswerFeedback)
 
         feedback = {"question_feedback": q_feedback, "answer_feedback": a_feedback}
-
+        logger.info(f"Question {state.get('step', 0) + 1} evaluated successfully.")
     except Exception as e:
-        print(f"⚠️ Error evaluating question/answer: {e}")
+        logger.error(f"Error evaluating question/answer: {e}")
         feedback = {
             "question_feedback": {"rating": 0, "feedback": "Evaluation failed."},
             "answer_feedback": {"rating": 0, "feedback": "Evaluation failed."}
         }
-
-    print(f"✅ Question {state.get('step', 0) + 1} evaluated. Moving to next question...")
 
     return {
         **state,
@@ -173,7 +177,7 @@ def generate_question_node(state: InterviewState) -> InterviewState:
     max_questions = state.get("max_questions", 5)
 
     if step >= max_questions:
-        print("⚠️ Max questions reached, skipping question generation.")
+        logger.info("Max questions reached, skipping question generation.")
         return state
 
     # Add context if not first question
@@ -185,9 +189,8 @@ def generate_question_node(state: InterviewState) -> InterviewState:
             if isinstance(tavily_results, list):
                 content_list += tavily_results
         except Exception as e:
-            print(f"⚠️ Tavily search failed: {e}")
+            logger.error(f"Tavily search failed: {e}")
 
-    # Generate question safely
     try:
         prompt_instruction = get_question_instruction(
             question_type,
@@ -201,8 +204,9 @@ def generate_question_node(state: InterviewState) -> InterviewState:
             step
         )
         question = gemini_client.generate_content(prompt_question) or f"Tell me more about {state.get('topic', '')}."
+        logger.info(f"Generated next question for step {step + 1}")
     except Exception as e:
-        print(f"⚠️ Error generating question: {e}")
+        logger.error(f"Error generating question: {e}")
         question = f"Tell me more about {state.get('topic', '')}."
 
     return {
@@ -219,9 +223,6 @@ from pydantic import BaseModel, Field
 from services.gemini_client import gemini_client
 from config.prompts import get_final_evaluation_prompt
 
-# -----------------------------
-# Pydantic model for final evaluation
-# -----------------------------
 class FinalEvaluation(BaseModel):
     overall_quality: int = Field(0, ge=0, le=10)
     strengths: List[str] = []
@@ -229,9 +230,6 @@ class FinalEvaluation(BaseModel):
     recommendation: str = "revise"
     final_feedback: str = "Failed to generate evaluation."
 
-# -----------------------------
-# Final Evaluation Node
-# -----------------------------
 def final_evaluation_node(state: dict) -> dict:
     """
     Generates the final evaluation of the interview.
@@ -240,7 +238,6 @@ def final_evaluation_node(state: dict) -> dict:
     answers = state.get("answers", [])
     feedback_list = state.get("feedback", [])
 
-    # Build transcript for context
     transcript = ""
     for i in range(min(len(questions), len(answers), len(feedback_list))):
         q = questions[i]
@@ -254,21 +251,15 @@ def final_evaluation_node(state: dict) -> dict:
             f" (Rating: {f.get('answer_feedback', {}).get('rating', 0)})\n\n"
         )
 
-    # Generate prompt
     try:
         prompt = get_final_evaluation_prompt(transcript)
         response_text = gemini_client.generate_content(prompt)
-
-        # Parse with Pydantic
-        evaluation = gemini_client.safe_parse_json(
-            response_text,
-            model=FinalEvaluation
-        )
+        evaluation = gemini_client.safe_parse_json(response_text, model=FinalEvaluation)
+        logger.info("Final evaluation generated successfully.")
     except Exception as e:
-        print(f"⚠️ Final evaluation failed: {e}")
+        logger.error(f"Final evaluation failed: {e}")
         evaluation = FinalEvaluation().dict()
 
-    # Update state
     return {**state, "final_evaluation": evaluation}
 
 # -----------------------------
@@ -278,19 +269,18 @@ def display_results_node(state: InterviewState) -> InterviewState:
     """
     Prints interview results and saves JSON file.
     """
+    logger.info("Displaying final interview results.")
     print("\n" + "=" * 60)
     print(" INTERVIEW COMPLETE - FINAL REPORT")
     print("=" * 60)
     print(f"\n Topic: {state.get('topic','N/A')}")
 
-    # Interview transcript
     print("\n📝 INTERVIEW TRANSCRIPT:")
     print("-" * 40)
     for i, (q, a) in enumerate(zip(state.get("questions", []), state.get("answers", [])), 1):
         print(f"\nQ{i}: {q}")
         print(f"A{i}: {a}")
 
-    # Detailed feedback
     print("\n\n📊 DETAILED FEEDBACK:")
     print("-" * 40)
     for i, (q, a, f) in enumerate(zip(
@@ -310,7 +300,6 @@ def display_results_node(state: InterviewState) -> InterviewState:
         print(f"\nAnswer Feedback: {a_fb.get('feedback','N/A')}")
         print(f"Answer Rating: {a_fb.get('rating',0)}/10")
 
-    # Final evaluation
     print("\n\n🏁 FINAL EVALUATION:")
     print("-" * 40)
     eval_data = state.get("final_evaluation", {})
@@ -324,12 +313,11 @@ def display_results_node(state: InterviewState) -> InterviewState:
     print(f"\nRecommendation: {eval_data.get('recommendation','N/A')}")
     print(f"\nFinal Feedback: {eval_data.get('final_feedback','N/A')}")
 
-    # Save JSON
     try:
         with open("interview_results.json", "w") as f:
             json.dump(state, f, indent=2)
-        print(f"\n💾 Results saved to 'interview_results.json'")
+        logger.info("Results saved to 'interview_results.json'.")
     except Exception as e:
-        print(f"⚠️ Failed to save results: {e}")
+        logger.error(f"Failed to save results: {e}")
 
     return state
