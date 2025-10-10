@@ -13,6 +13,16 @@ logger = setup_logger("interview_bot.nodes")
 def build_transcript(
     questions: List[str], answers: List[str], feedback_list: List[dict]
 ) -> str:
+    """Build a readable transcript of all interview questions, answers, and feedback.
+
+    Args:
+        questions (List[str]): List of interview questions.
+        answers (List[str]): List of user answers corresponding to questions.
+        feedback_list (List[dict]): Feedback on each question-answer pair.
+
+    Returns:
+        str: Formatted transcript string containing all Q/A and feedback.
+    """
     transcript = ""
     for i, (q, a) in enumerate(zip(questions, answers), 1):
         f = feedback_list[i - 1] if i - 1 < len(feedback_list) else {}
@@ -25,10 +35,29 @@ def build_transcript(
 
 
 def safe_prompt(fstring: str) -> str:
+    """Safely format and clean up a prompt string.
+
+    Args:
+        fstring (str): Raw prompt string.
+
+    Returns:
+        str: Dedented and trimmed prompt text.
+    """
     return textwrap.dedent(fstring).strip()
 
 
 def setup_node(state: InterviewState) -> InterviewState:
+    """Initializes the interview setup node.
+
+    - Validates question type.
+    - Generates the first interview question using the Gemini client.
+
+    Args:
+        state (InterviewState): Current interview state.
+
+    Returns:
+        InterviewState: Updated state with the first question and setup metadata.
+    """
     topic = state.get("topic", "").strip()
     question_type = state.get("question_type", "broad_followup").strip()
     cv_content = state.get("cv_content", "").strip()
@@ -75,6 +104,14 @@ def setup_node(state: InterviewState) -> InterviewState:
 
 
 def get_answer_node(state: InterviewState) -> InterviewState:
+    """Captures the candidate's answer for the current question.
+
+    Args:
+        state (InterviewState): Current state of the interview.
+
+    Returns:
+        InterviewState: Updated state including the candidate's latest answer.
+    """
     current_q = state.get("current_question")
     if not current_q:
         raise ValueError("No current_question found in state.")
@@ -105,6 +142,14 @@ def get_answer_node(state: InterviewState) -> InterviewState:
 
 
 def evaluate_question_node(state: InterviewState) -> InterviewState:
+    """Evaluates the most recent question and answer using Gemini feedback.
+
+    Args:
+        state (InterviewState): Current interview state.
+
+    Returns:
+        InterviewState: Updated state with question and answer feedback appended.
+    """
     questions = state.get("questions", [])
     answers = state.get("answers", [])
     feedback_list = state.get("feedback", [])
@@ -156,6 +201,14 @@ def evaluate_question_node(state: InterviewState) -> InterviewState:
 
 
 def generate_question_node(state: InterviewState) -> InterviewState:
+    """Generates the next interview question based on the user's previous answer.
+
+    Args:
+        state (InterviewState): Current interview state.
+
+    Returns:
+        InterviewState: Updated state with the next interview question.
+    """
     content_list = state.get("content", ["No content"])
     question_type = state.get("question_type", "broad_followup")
     step = state.get("step", 0)
@@ -194,6 +247,8 @@ def generate_question_node(state: InterviewState) -> InterviewState:
 
 
 class FinalEvaluation(BaseModel):
+    """Pydantic model representing the final interview evaluation summary."""
+
     overall_quality: int = Field(0, ge=0, le=10)
     strengths: List[str] = []
     areas_for_improvement: List[str] = []
@@ -202,6 +257,14 @@ class FinalEvaluation(BaseModel):
 
 
 def final_evaluation_node(state: InterviewState) -> InterviewState:
+    """Generates the final evaluation report based on the interview transcript.
+
+    Args:
+        state (InterviewState): Current interview state.
+
+    Returns:
+        InterviewState: Updated state with the final evaluation results.
+    """
     questions = state.get("questions", [])
     answers = state.get("answers", [])
     feedback_list = state.get("feedback", [])
@@ -220,6 +283,14 @@ def final_evaluation_node(state: InterviewState) -> InterviewState:
 
 
 def display_results_node(state: InterviewState) -> InterviewState:
+    """Logs and saves the final interview report to a JSON file.
+
+    Args:
+        state (InterviewState): Final interview state containing evaluation results.
+
+    Returns:
+        InterviewState: Unmodified final state (for completeness).
+    """
     logger.info("INTERVIEW COMPLETE - FINAL REPORT")
     logger.info("Topic: %s", state.get("topic", "N/A"))
 

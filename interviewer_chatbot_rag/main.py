@@ -1,4 +1,3 @@
-# main.py
 import os
 from utils.cv_tools import load_cv_from_path
 from graph.graph import create_interview_graph
