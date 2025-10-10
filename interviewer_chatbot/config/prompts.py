@@ -4,6 +4,7 @@ Centralized prompt templates for the AI Interviewer system
 """
 
 import textwrap
+from typing import Literal
 
 # -------------------------------
 # Utility functions
@@ -16,9 +17,7 @@ def safe_text(text: str, max_len: int = 2000) -> str:
     """
     if not text:
         return ""
-    # Replace problematic characters if needed
     sanitized = str(text).replace("\r", "").replace("\t", "    ")
-    # Truncate if too long
     return sanitized[:max_len]
 
 def build_prompt(role_desc: str, content: str, body: str) -> str:
@@ -58,34 +57,39 @@ def get_question_generation_prompt(content_text: str, prompt_instruction: str, t
 def get_question_instruction(is_followup: bool, is_broad: bool, previous_answer: str = "") -> str:
     """
     Generate the instruction part for question generation.
-    
     Avoids awkward references when previous_answer is empty.
     """
     style = "broad, general" if is_broad else "specific, detailed"
-    
-    if is_followup:
-        if previous_answer.strip():
-            # Only reference previous_answer if non-empty
-            return f"Generate a {style} follow-up question that directly probes details from the previous answer: {previous_answer}"
-        else:
-            # Generic follow-up if previous_answer is empty
-            return f"Generate a {style} follow-up question that builds on the previous discussion."
+    scope = "follow-up" if is_followup else "new aspect"
+
+    if is_followup and previous_answer.strip():
+        return f"Generate a {style} {scope} question that directly probes details from the previous answer: {previous_answer}"
+    elif is_followup:
+        return f"Generate a {style} {scope} question that builds on the previous discussion."
     else:
-        return f"Generate a {style} question that explores a new aspect of the topic, independent of the previous answer."
+        return f"Generate a {style} {scope} question that explores a new aspect of the topic, independent of the previous answer."
 
 
 # -------------------------------
-# Evaluation Prompts
+# Generic Evaluation Prompt
 # -------------------------------
 
-def get_evaluation_prompt(kind: str, full_messages: str, full_content: str, transcript: str, last_question: str = "", last_answer: str = "") -> str:
+def get_evaluation_prompt(
+    kind: Literal["question", "answer"],
+    full_messages: str,
+    full_content: str,
+    transcript: str,
+    last_question: str = "",
+    last_answer: str = ""
+) -> str:
     """
-    Generic evaluation prompt for 'question' or 'answer'.
-    Uses safe_text to prevent context overflow.
+    Generic evaluation prompt for either 'question' or 'answer'.
+    Sanitizes all inputs and prevents exceeding context.
     """
     kind_desc = "question" if kind == "question" else "candidate answer"
+
     body = textwrap.dedent(f"""
-        Evaluate the following {kind_desc} for its clarity, relevance, and ability to probe understanding,
+        Evaluate the following {kind_desc} for its clarity, relevance, depth, and alignment with the topic,
         considering the ENTIRE interview history, accumulated context, all previous messages, questions, answers, and feedback.
 
         Full Interview History (Messages): {safe_text(full_messages)}
@@ -95,12 +99,17 @@ def get_evaluation_prompt(kind: str, full_messages: str, full_content: str, tran
         Current Candidate Answer: {safe_text(last_answer)}
 
         Provide a rating (1-10) for {kind_desc} quality and 2-3 sentence feedback.
-        Return in JSON format:
-        {{
-            "rating": 0,
-            "feedback": "..."
-        }}
-    """).strip()
+    """)
+
+    if kind == "answer":
+        body += textwrap.dedent("""
+            Return in JSON format:
+            {
+                "rating": 0,
+                "feedback": "..."
+            }
+        """)
+
     return build_prompt("an expert interviewer", "", body)
 
 
