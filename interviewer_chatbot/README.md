@@ -1,4 +1,3 @@
-````markdown
 # 🧠 Interviewer Chatbot
 
 A **LangGraph-powered terminal application** that conducts AI-driven technical interviews.  
@@ -91,7 +90,6 @@ You’ll be prompted to:
 
 The system will then conduct a full AI-driven interview session in the terminal.
 
----
 
 
 
