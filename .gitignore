@@ -1,9 +1,9 @@
-interviewer_chatbot/.env
+rag_interviewer_chatbot/.env
 *.pyc
 *.pyo
-interviewer_chatbot/venv/
-interviewer_chatbot/__pycache__/
-interviewer_chatbot/.ipynb_checkpoints/
+rag_interviewer_chatbot/venv/
+rag_interviewer_chatbot/__pycache__/
+rag_interviewer_chatbot/.ipynb_checkpoints/
 .vscode/
 .env
 .ipynb_checkpoints/
