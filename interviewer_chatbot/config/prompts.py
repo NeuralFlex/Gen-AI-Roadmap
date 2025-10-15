@@ -8,7 +8,7 @@ import textwrap
 from typing import Literal
 
 
-#
+
 def safe_text(text: str, max_len: int = 2000) -> str:
     """
     Safely sanitize and truncate input text to prevent prompt overflow or malformed context.
