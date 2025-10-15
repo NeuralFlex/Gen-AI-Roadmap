@@ -18,24 +18,21 @@ It dynamically generates and evaluates interview questions using **Gemini** and 
 
 ## 1. Core Components
 
-### 1.1 Interview Graph (LangGraph)
-Implements the main interview logic as a directed graph in `graph/graph.py`.  
-Each node handles a stage of the interview (setup, question generation, answer evaluation, and final summary).
+### 1.1 Interview Graph
+Implements the main interview logic as a **directed LangGraph**, where each node represents a stage of the interview process — setup, question generation, answer evaluation, and final summary.
 
-### 1.2 State Management
-`graph/state.py` defines `InterviewState`, which maintains all session variables such as topic, current step, and responses.
+### 1.2 Stateful Interview Management
+Maintains all session variables such as topic, current step, generated questions, and recorded responses throughout the interview session.
 
-### 1.3 Gemini & Tavily Integration
-- **`services/gemini_client.py`** – Handles question generation and answer evaluation using the Gemini API.  
-- **`services/tavily_client.py`** – Provides contextual content and background knowledge via Tavily API.
+### 1.3 AI & Knowledge Services
+- **Gemini** powers dynamic question generation and answer evaluation.  
+- **Tavily** enriches the process with contextual background knowledge and relevant references.
 
-### 1.4 Configuration & Prompts
-- **`config/prompts.py`** – Contains predefined prompt templates for interviews.  
-- **`config/settings.py`** – Loads API keys and environment settings.
+### 1.4 Prompts and Configuration
+Uses structured prompt templates and environment-driven configuration to ensure consistency and security across different interview sessions.
 
 ### 1.5 Logging
-- **`utils/logger.py`** – Handles structured logging.  
-  All logs are printed directly in the terminal.
+Includes structured terminal logging for all key steps, making debugging and tracking straightforward.
 
 ---
 
@@ -51,19 +48,14 @@ Ensure the following are installed:
 
 ### 2.2 Environment Configuration
 
-Create a `.env` file in the project root with your API keys, The API keys required to run this code can be found in .env_example in root folder of the project
-
-
+Create a `.env` file in the project root with your API keys.  
+You can refer to the `.env_example` file included in the project for required variables.
 
 ---
 
 ### 2.3 Setup Steps
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/interviewer_chatbot.git
-cd interviewer_chatbot
-
 # Create and activate a virtual environment
 python3 -m venv venv
 source venv/bin/activate   # On Linux/macOS
@@ -71,7 +63,7 @@ venv\Scripts\activate      # On Windows
 
 # Install dependencies
 pip install -r requirements.txt
-```
+````
 
 ---
 
@@ -88,14 +80,5 @@ You’ll be prompted to:
 1. Enter an **interview topic** (e.g., “Python”, “R Language”, “Machine Learning”).
 2. Choose the **question type** – `broad`, `narrow_up`, or `follow_up`.
 
-The system will then conduct a full AI-driven interview session in the terminal.
-
-
-
-
----
-
-✅ **Ready to Use!**
-You can now run and extend your **LangGraph-powered terminal interview chatbot**
-to support new interview types, topics, and logic flows — all from your terminal.
+The system will then conduct a complete AI-driven interview session directly in the terminal.
 
