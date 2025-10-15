@@ -1,9 +1,3 @@
-"""
-Interview System Prompts
-Centralized prompt templates for the AI Interviewer system (CV-only version).
-Handles structured prompt construction for Gemini-based question generation and evaluation.
-"""
-
 import textwrap
 from typing import Literal
 
@@ -166,10 +160,6 @@ def get_evaluation_prompt(
 
     return build_prompt("an expert technical interviewer", "", body)
 
-
-# ===============================================================
-# 🏁 Final Evaluation Prompt
-# ===============================================================
 
 
 def get_final_evaluation_prompt(transcript: str) -> str:
