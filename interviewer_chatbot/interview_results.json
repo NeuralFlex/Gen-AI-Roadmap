@@ -1,0 +1,101 @@
+{
+  "topic": "Mobile Application Development",
+  "content": [
+    "Muhammad Akbar Date of birth: 12/01/2004  Nationality: Pakistani  Phone number: (+90) 05428469534 (Mobile)  Email address: Muhammadakbartr11@gmail.com   \nAddress: seftali sokak, 14 daire, ormanli cd , Avcilar, 34000, Istanbul, T\u00fcrkiye\n(Home)   \n07/03/2022 \u2013 CURRENT Istanbul \nCOMPUTER ENGINEER Istanbul Arel University \nWebsite https://arel.edu.tr/  Level in EQFEQF level 6 \n SOFTWARE ENGINEERING INTERN \u2013 07/02/2025 \u2013 CURRENT \nMobile Application Development: Developed cross-platform mobile applications using React Native and Jetpack\nCompose ,delivering seamless user experiences on both iOS and Android.\nUI/UX Implementation: Translated design wireframes and mockups into functional mobile interfaces using React\nNative components and ensuring responsiveness and performance optimization.\nState Management: Utilized Redux and React Context API for state management, ensuring smooth data \ufb02ow and\ne\ufb03cient communication between components.\nAPI Integration: Integrated RESTful APIs and third-party services for dynamic content, real-time data, and push\nnoti\ufb01cations in mobile applications.\nTesting and Debugging: Conducted unit testing with Jest and React Native Testing Library to ensure application\nstability, and debugged issues using React Native Debugger.\nApp Deployment: Published applications to the App Store and Google Play Store, managing app lifecycle updates\nand maintaining version control.\nCollaboration and Agile Development: Worked in an Agile environment, collaborating with designers, backend\ndevelopers, and product managers to ensure timely delivery of features and improvements.\nSmart Beauty (Jetpack Compose - Android)\nDeveloped a beauty services app with a modern UI using Jetpack Compose. Focused on performance optimization and\nsmooth UI interactions. Integrated AI and made \ufb02exible UI components.\nMedical Home (React Native - iOS & Android)\nBuilt a mobile healthcare app, integrated RESTful APIs, and implemented push noti\ufb01cations for real-time updates.\nMother tongue(s):  URDU \nOther language(s):  \nUNDERSTANDING SPEAKING WRITING\nListening Reading Spoken production Spoken interaction\nENGLISH C1 C1 C1 C1 C2\nHINDI C2 B1 C2 C2 C2\nPUNJABI C1 C1 C2 C2 C2\nTURKISH B2 B1 B1 B2 A2\nLevels: A1 and A2: Basic user; B1 and B2: Independent user; C1 and C2: Pro\ufb01cient user \nEDUCATION AND TRAININGWORK EXPERIENCE\uf1ad BLUESENSE AI \u2013 ISTANBUL, T\u00dcRKIYE\nLANGUAGE SKILLS \nData Science | Data Collection, Data Processing, Data Analysis, Data Visualisation Node.Js, React.Js SQLPython Web Development (Python/Django) Machine Learing Deep Learning (Tensor\ufb02ow, Pytorch(basic), Jax/\nFlax(basic) ) Python (PyROOT, RDataFrame; ML: Keras, TensorFlow) Image Preprocessing and Image\nClassi\ufb01cation Modeling: Linear and logistic regressions WEB; Web Developer Git, Git Hub, SVN Java Swing /\nJava FX JAVA SPRING C,C,C++ Microcontroller programming(STM32, PIC16F877a, Arduino) Programmazione\nObject Oriented \n01/09/2024 \u2013 24/12/2024 \nSkin Disease Detection Classi\ufb01cation \n\u2022 Developed a CNN model for skin disease detection using the HAM10000 dataset with 97.75% test accuracy. \u2022\nEnhanced model performance using dropout layers, data augmentation, and ensemble learning. \u2022 Deployed as a\nmobile app using TensorFlow Lite and Kivy\nLink https://github.com/reprobatebo\ufb03n/Skin-Disease-Detection-Application-Kivy-Tensor\ufb02ow  \n06/06/2024 \u2013 10/07/2024 \nDjango Real Time Chat Application \n\u2022 Developed a real-time messaging app with Django and WebSockets. \u2022 Stored chat history using SQLite.\nLink https://github.com/reprobatebo\ufb03n/Django-Discord-like-chat-app-StudyBuddy  \n12/07/2024 \u2013 29/07/2024 \nEcommerece Website using Django \nDesigned a responsive e-commerce platform using React and TailwindCSS. \u2022 Built a secure Django backend with\nPostgreSQL. \u2022 Integrated payment gateways, authentication, and admin dashboards.\nLink https://github.com/reprobatebo\ufb03n/Django-Ecommerce-website  \n12/09/2024 \u2013 CURRENT Istanbul  \nDeveloper student's club , Arel University \nLiterature \nMechatronics SKILLS \nPROJECTS \nNETWORKS AND MEMBERSHIPS HOBBIES AND INTERESTS",
+    "Q: You've worked with both Redux and React Context API for state management. In your 'Medical Home' project, can you describe a scenario where you chose one of these over the other for a particular feature or data flow, and elaborate on the technical considerations and trade-offs that led to that decision?\nA: i used redux in major areas where immediate real time response was necessary like dashboard, and context api where it was less critical to get real time response",
+    "Q: Can you walk me through a specific feature or component in one of your projects where this distinction was critical, and explain the architectural implications or performance benefits you observed by choosing Redux over Context API in that particular case?\nA: no",
+    "Q: Given your experience with both React Native for cross-platform development and Jetpack Compose for Android, can you discuss a specific instance where you had to decide between a native (Jetpack Compose) and a cross-platform (React Native) approach for a project? What were the key factors that influenced your final decision and what challenges or benefits did you observe from that choice?\nA: nya"
+  ],
+  "cv_content": "Muhammad Akbar Date of birth: 12/01/2004  Nationality: Pakistani  Phone number: (+90) 05428469534 (Mobile)  Email address: Muhammadakbartr11@gmail.com   \nAddress: seftali sokak, 14 daire, ormanli cd , Avcilar, 34000, Istanbul, T\u00fcrkiye\n(Home)   \n07/03/2022 \u2013 CURRENT Istanbul \nCOMPUTER ENGINEER Istanbul Arel University \nWebsite https://arel.edu.tr/  Level in EQFEQF level 6 \n SOFTWARE ENGINEERING INTERN \u2013 07/02/2025 \u2013 CURRENT \nMobile Application Development: Developed cross-platform mobile applications using React Native and Jetpack\nCompose ,delivering seamless user experiences on both iOS and Android.\nUI/UX Implementation: Translated design wireframes and mockups into functional mobile interfaces using React\nNative components and ensuring responsiveness and performance optimization.\nState Management: Utilized Redux and React Context API for state management, ensuring smooth data \ufb02ow and\ne\ufb03cient communication between components.\nAPI Integration: Integrated RESTful APIs and third-party services for dynamic content, real-time data, and push\nnoti\ufb01cations in mobile applications.\nTesting and Debugging: Conducted unit testing with Jest and React Native Testing Library to ensure application\nstability, and debugged issues using React Native Debugger.\nApp Deployment: Published applications to the App Store and Google Play Store, managing app lifecycle updates\nand maintaining version control.\nCollaboration and Agile Development: Worked in an Agile environment, collaborating with designers, backend\ndevelopers, and product managers to ensure timely delivery of features and improvements.\nSmart Beauty (Jetpack Compose - Android)\nDeveloped a beauty services app with a modern UI using Jetpack Compose. Focused on performance optimization and\nsmooth UI interactions. Integrated AI and made \ufb02exible UI components.\nMedical Home (React Native - iOS & Android)\nBuilt a mobile healthcare app, integrated RESTful APIs, and implemented push noti\ufb01cations for real-time updates.\nMother tongue(s):  URDU \nOther language(s):  \nUNDERSTANDING SPEAKING WRITING\nListening Reading Spoken production Spoken interaction\nENGLISH C1 C1 C1 C1 C2\nHINDI C2 B1 C2 C2 C2\nPUNJABI C1 C1 C2 C2 C2\nTURKISH B2 B1 B1 B2 A2\nLevels: A1 and A2: Basic user; B1 and B2: Independent user; C1 and C2: Pro\ufb01cient user \nEDUCATION AND TRAININGWORK EXPERIENCE\uf1ad BLUESENSE AI \u2013 ISTANBUL, T\u00dcRKIYE\nLANGUAGE SKILLS \nData Science | Data Collection, Data Processing, Data Analysis, Data Visualisation Node.Js, React.Js SQLPython Web Development (Python/Django) Machine Learing Deep Learning (Tensor\ufb02ow, Pytorch(basic), Jax/\nFlax(basic) ) Python (PyROOT, RDataFrame; ML: Keras, TensorFlow) Image Preprocessing and Image\nClassi\ufb01cation Modeling: Linear and logistic regressions WEB; Web Developer Git, Git Hub, SVN Java Swing /\nJava FX JAVA SPRING C,C,C++ Microcontroller programming(STM32, PIC16F877a, Arduino) Programmazione\nObject Oriented \n01/09/2024 \u2013 24/12/2024 \nSkin Disease Detection Classi\ufb01cation \n\u2022 Developed a CNN model for skin disease detection using the HAM10000 dataset with 97.75% test accuracy. \u2022\nEnhanced model performance using dropout layers, data augmentation, and ensemble learning. \u2022 Deployed as a\nmobile app using TensorFlow Lite and Kivy\nLink https://github.com/reprobatebo\ufb03n/Skin-Disease-Detection-Application-Kivy-Tensor\ufb02ow  \n06/06/2024 \u2013 10/07/2024 \nDjango Real Time Chat Application \n\u2022 Developed a real-time messaging app with Django and WebSockets. \u2022 Stored chat history using SQLite.\nLink https://github.com/reprobatebo\ufb03n/Django-Discord-like-chat-app-StudyBuddy  \n12/07/2024 \u2013 29/07/2024 \nEcommerece Website using Django \nDesigned a responsive e-commerce platform using React and TailwindCSS. \u2022 Built a secure Django backend with\nPostgreSQL. \u2022 Integrated payment gateways, authentication, and admin dashboards.\nLink https://github.com/reprobatebo\ufb03n/Django-Ecommerce-website  \n12/09/2024 \u2013 CURRENT Istanbul  \nDeveloper student's club , Arel University \nLiterature \nMechatronics SKILLS \nPROJECTS \nNETWORKS AND MEMBERSHIPS HOBBIES AND INTERESTS",
+  "questions": [
+    "You've worked with both Redux and React Context API for state management. In your 'Medical Home' project, can you describe a scenario where you chose one of these over the other for a particular feature or data flow, and elaborate on the technical considerations and trade-offs that led to that decision?",
+    "Can you walk me through a specific feature or component in one of your projects where this distinction was critical, and explain the architectural implications or performance benefits you observed by choosing Redux over Context API in that particular case?",
+    "Given your experience with both React Native for cross-platform development and Jetpack Compose for Android, can you discuss a specific instance where you had to decide between a native (Jetpack Compose) and a cross-platform (React Native) approach for a project? What were the key factors that influenced your final decision and what challenges or benefits did you observe from that choice?"
+  ],
+  "answers": [
+    "i used redux in major areas where immediate real time response was necessary like dashboard, and context api where it was less critical to get real time response",
+    "no",
+    "nya"
+  ],
+  "feedback": [
+    {
+      "question_feedback": {
+        "rating": 9,
+        "feedback": "This is an excellent question. It's highly relevant as it directly references the candidate's CV and project experience, demonstrating that the interviewer has read the background material. The clarity is superb, explicitly asking for a scenario, technical considerations, and trade-offs, which are key for evaluating deeper understanding beyond basic usage."
+      },
+      "answer_feedback": {
+        "rating": 4,
+        "feedback": "The candidate provides a high-level distinction between Redux and Context API usage based on real-time requirements. However, the answer lacks the requested specific scenario from the 'Medical Home' project and fails to elaborate on the technical considerations and trade-offs that informed these architectural decisions, which are crucial for demonstrating a deeper understanding."
+      }
+    },
+    {
+      "question_feedback": {
+        "rating": 10,
+        "feedback": "This is an excellent question. It's highly relevant as it directly follows up on the candidate's previous high-level answer, specifically asking for the concrete examples and technical rationale that were missing. The clarity is superb, compelling the candidate to describe a specific scenario and elaborate on architectural implications or performance benefits, which are crucial for assessing practical application and deep understanding."
+      },
+      "answer_feedback": {
+        "rating": 0,
+        "feedback": "The candidate explicitly declined to answer the question, which is a significant red flag. This response severely limits the interviewer's ability to assess their practical experience, technical understanding, or ability to articulate architectural decisions and their implications regarding state management."
+      }
+    },
+    {
+      "question_feedback": {
+        "rating": 10,
+        "feedback": "This is an excellent question. It directly references the candidate's listed experience with both React Native and Jetpack Compose for different projects. The clarity is superb, asking for a specific instance, key decision factors, and observed challenges/benefits, which probes for critical thinking, understanding of architectural trade-offs, and practical application of skills."
+      },
+      "answer_feedback": {
+        "rating": 0,
+        "feedback": "The candidate provided an unintelligible response ('nya'), which offers no information whatsoever. This indicates a complete inability to address the question, despite their CV explicitly listing experience with both React Native and Jetpack Compose projects. This significantly undermines the credibility of their claimed technical background."
+      }
+    }
+  ],
+  "current_question": "Given your experience with both React Native for cross-platform development and Jetpack Compose for Android, can you discuss a specific instance where you had to decide between a native (Jetpack Compose) and a cross-platform (React Native) approach for a project? What were the key factors that influenced your final decision and what challenges or benefits did you observe from that choice?",
+  "current_answer": "nya",
+  "step": 3,
+  "max_questions": 3,
+  "final_evaluation": {
+    "overall_quality": 1,
+    "strengths": [
+      "Identified a very high-level distinction between Redux and Context API based on real-time needs (though without elaboration)."
+    ],
+    "areas_for_improvement": [
+      "Deepen understanding of state management libraries (Redux, Context API) beyond nominal use cases.",
+      "Ability to articulate specific project scenarios where technical decisions were made.",
+      "Elaborate on technical considerations, trade-offs, architectural implications, and performance benefits when discussing technology choices.",
+      "Improve communication skills, particularly in providing detailed and justified technical explanations."
+    ],
+    "recommendation": "remove",
+    "final_feedback": "The candidate displayed an extremely superficial understanding of Redux and React Context API for state management. They failed to provide any specific scenarios, technical considerations, or trade-offs as requested, and critically, could not offer a concrete example when explicitly prompted, responding with a single 'no'. This indicates a profound lack of practical experience and deep technical knowledge in a core area."
+  },
+  "messages": [
+    {
+      "role": "user",
+      "content": "Interview topic: Mobile Application Development"
+    },
+    {
+      "role": "interviewer",
+      "content": "You've worked with both Redux and React Context API for state management. In your 'Medical Home' project, can you describe a scenario where you chose one of these over the other for a particular feature or data flow, and elaborate on the technical considerations and trade-offs that led to that decision?"
+    },
+    {
+      "role": "candidate",
+      "content": "i used redux in major areas where immediate real time response was necessary like dashboard, and context api where it was less critical to get real time response"
+    },
+    {
+      "role": "interviewer",
+      "content": "Can you walk me through a specific feature or component in one of your projects where this distinction was critical, and explain the architectural implications or performance benefits you observed by choosing Redux over Context API in that particular case?"
+    },
+    {
+      "role": "candidate",
+      "content": "no"
+    },
+    {
+      "role": "interviewer",
+      "content": "Given your experience with both React Native for cross-platform development and Jetpack Compose for Android, can you discuss a specific instance where you had to decide between a native (Jetpack Compose) and a cross-platform (React Native) approach for a project? What were the key factors that influenced your final decision and what challenges or benefits did you observe from that choice?"
+    },
+    {
+      "role": "candidate",
+      "content": "nya"
+    }
+  ],
+  "question_type": "narrow_followup"
+}

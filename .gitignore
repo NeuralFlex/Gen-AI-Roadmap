@@ -20,5 +20,4 @@ Interviewer chatbot/.ipynb_checkpoints/
 .env
 .env
 .ipynb_checkpoints/
-cv.pdf
-.pdf
+*.pdf
