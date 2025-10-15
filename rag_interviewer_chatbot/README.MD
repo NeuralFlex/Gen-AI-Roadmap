@@ -77,8 +77,6 @@ python main.py
 You’ll be prompted to:
 
 1. Provide a **candidate CV** (e.g., PDF, text, or structured input).
-2. Choose the **question type** – `broad`, `narrow_up`, or `follow_up`.
+2. Choose the **question type** – `broad_followup`, `narrow_followup`, `broad_nonfollowup`, or `narrow_nonfollowup`.
 
 The system will then conduct a complete AI-driven interview session based entirely on the provided CV.
-
-
