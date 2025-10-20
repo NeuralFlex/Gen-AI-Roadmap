@@ -1,11 +1,21 @@
 from graph.graph import create_interview_graph
 from utils.logger import setup_logger
+from utils.cv_tools import extract_text_from_pdf, chunk_cv_text
+from utils.vectorstore import create_vectorstore
 
 logger = setup_logger(__name__)
 
 
-def main():
-    topic = input("What topic do you want interview to be of: ")
+# ===== MAIN EXECUTION =====
+
+if __name__ == "__main__":
+    cv_path = input("Enter CV path: ").strip()
+    cv_text = extract_text_from_pdf(cv_path)
+    documents = chunk_cv_text(cv_text, user_id="user123")
+    vectorstore = create_vectorstore(documents, user_id="user123")
+    print(f"✅ CV processed: {len(documents)} chunks created and indexed.")
+
+    topic = input("Enter interview topic/job title: ").strip()
     print("\nChoose question style:")
     print("1. Broad, follow-up questions (general, builds on previous answers)")
     print(
@@ -30,10 +40,10 @@ def main():
 
     interview_graph = create_interview_graph()
 
-    # Initial state
     initial_state = {
         "topic": topic,
         "content": [],
+        "cv_content": cv_text[:1000],
         "questions": [],
         "answers": [],
         "feedback": [],
@@ -44,18 +54,12 @@ def main():
         "final_evaluation": None,
         "messages": [],
         "question_type": question_type,
+        "needs_retrieval": False,
+        "retrieved_context": None,
+        "similarity_score": None,
+        "user_id": "user123",
     }
 
-    try:
-        final_state = interview_graph.invoke(initial_state)
-        logger.info("Interview completed successfully")  # ✅ Log success
-        print("\n✅ Interview completed successfully!")
-    except Exception as e:
-        logger.exception(
-            f"Interview failed due to error: {e}"
-        )  # ✅ Logs full stack trace
-        print(f"❌ Interview failed due to error: {e}")
-
-
-if __name__ == "__main__":
-    main()
+    print("\n🚀 Starting interview...\n")
+    final_state = interview_graph.invoke(initial_state)
+    print("\n✅ Interview completed! Results saved in interview_results.json")
