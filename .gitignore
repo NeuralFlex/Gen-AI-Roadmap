@@ -16,3 +16,6 @@ interviewer_chatbot/.ipynb_checkpoints/
 .ipynb_checkpoints/
 
 
+faiss_index_user123
+
+*.pdf
