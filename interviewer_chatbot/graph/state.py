@@ -20,3 +20,4 @@ class InterviewState(TypedDict):
     retrieved_context: Optional[str]
     similarity_score: Optional[float]
     user_id: str
+    tavily_snippets: List[str]
