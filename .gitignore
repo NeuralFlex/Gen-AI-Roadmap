@@ -1,16 +1,21 @@
 # Ignore environment variables
-Interviewer_chatbot/.env
+interviewer_chatbot/.env
 
 # Python cache
 *.pyc
 *.pyo
-
+*.json
 # Jupyter notebook checkpoints
-Interviewer_chatbot/venv/
-Interviewer_chatbot/__pycache__/
-Interviewer_chatbot/.ipynb_checkpoints/
+interviewer_chatbot/venv/
+interviewer_chatbot/__pycache__/
+interviewer_chatbot/.ipynb_checkpoints/
 
 .vscode/
 .env
 .
 .ipynb_checkpoints/
+
+
+faiss_index_user123
+
+*.pdf

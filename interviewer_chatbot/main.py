@@ -1,11 +1,19 @@
 from graph.graph import create_interview_graph
 from utils.logger import setup_logger
+from utils.cv_tools import extract_text_from_pdf, chunk_cv_text
+from services.vectorstore_service import create_vectorstore
 
 logger = setup_logger(__name__)
 
 
 def main():
-    topic = input("What topic do you want interview to be of: ")
+    cv_path = input("Enter CV path: ").strip()
+    cv_text = extract_text_from_pdf(cv_path)
+    documents = chunk_cv_text(cv_text, user_id="user123")
+    vectorstore = create_vectorstore(documents, user_id="user123")
+    print(f"✅ CV processed: {len(documents)} chunks created and indexed.")
+
+    topic = input("Enter interview topic/job title: ").strip()
     print("\nChoose question style:")
     print("1. Broad, follow-up questions (general, builds on previous answers)")
     print(
@@ -30,10 +38,10 @@ def main():
 
     interview_graph = create_interview_graph()
 
-    # Initial state
     initial_state = {
         "topic": topic,
         "content": [],
+        "cv_content": cv_text[:1000],
         "questions": [],
         "answers": [],
         "feedback": [],
@@ -44,16 +52,18 @@ def main():
         "final_evaluation": None,
         "messages": [],
         "question_type": question_type,
+        "needs_retrieval": False,
+        "retrieved_context": None,
+        "similarity_score": None,
+        "user_id": "user123",
     }
 
     try:
         final_state = interview_graph.invoke(initial_state)
-        logger.info("Interview completed successfully")  # ✅ Log success
+        logger.info("Interview completed successfully")
         print("\n✅ Interview completed successfully!")
     except Exception as e:
-        logger.exception(
-            f"Interview failed due to error: {e}"
-        )  # ✅ Logs full stack trace
+        logger.exception(f"Interview failed due to error: {e}")
         print(f"❌ Interview failed due to error: {e}")
 
 
