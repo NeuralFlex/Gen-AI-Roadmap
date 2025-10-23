@@ -1,14 +1,12 @@
 from graph.graph import create_interview_graph
 from utils.logger import setup_logger
 from utils.cv_tools import extract_text_from_pdf, chunk_cv_text
-from utils.vectorstore import create_vectorstore
+from services.vectorstore_service import create_vectorstore
 
 logger = setup_logger(__name__)
 
 
-# ===== MAIN EXECUTION =====
-
-if __name__ == "__main__":
+def main():
     cv_path = input("Enter CV path: ").strip()
     cv_text = extract_text_from_pdf(cv_path)
     documents = chunk_cv_text(cv_text, user_id="user123")
@@ -60,6 +58,14 @@ if __name__ == "__main__":
         "user_id": "user123",
     }
 
-    print("\n🚀 Starting interview...\n")
-    final_state = interview_graph.invoke(initial_state)
-    print("\n✅ Interview completed! Results saved in interview_results.json")
+    try:
+        final_state = interview_graph.invoke(initial_state)
+        logger.info("Interview completed successfully")
+        print("\n✅ Interview completed successfully!")
+    except Exception as e:
+        logger.exception(f"Interview failed due to error: {e}")
+        print(f"❌ Interview failed due to error: {e}")
+
+
+if __name__ == "__main__":
+    main()
