@@ -1,7 +1,8 @@
 # 🧠 Interviewer Chatbot
 
 A **LangGraph-powered terminal application** that conducts AI-driven technical interviews.  
-It dynamically generates and evaluates interview questions using **Gemini** and **Tavily APIs**, manages state with a **LangGraph-based workflow**, and retrieves relevant CV context using **vector embeddings**, effectively using RAG to enhance the interview experience when necessary.
+It dynamically generates and evaluates interview questions using **Gemini** and **Tavily APIs**, manages state with a **LangGraph-based workflow**, and retrieves relevant CV context using **vector embeddings**, effectively using **RAG** to enhance the interview experience when necessary.  
+It can also send **interview feedback summaries directly to a Slack channel** using **webhooks** for team visibility.
 
 ---
 
@@ -28,28 +29,31 @@ Maintains all session variables such as topic, current step, generated questions
 - **Gemini** powers dynamic question generation and answer evaluation.  
 - **Tavily** enriches the process with contextual background knowledge and relevant references.
 
-### 1.4 Vector Database & Embeddings 
+### 1.4 Vector Database & Embeddings
 Integrates **vector similarity search** to enhance interview personalization:
 
-- The candidate’s **CV is split into text chunks**.  
+- The candidate’s **CV is split into text chunks.**  
 - Each chunk is **converted into an embedding vector** using an embedding model (e.g., Gemini or OpenAI).  
-- When the candidate answers a question, their answer is also **embedded**.  
+- When the candidate answers a question, their answer is also **embedded.**  
 - The system computes the **distance (cosine similarity or Euclidean distance)** between the answer embedding and each CV chunk.  
 - **Relevant CV chunks** are retrieved if the **distance is below a predefined threshold** (e.g., 0.55).  
-- Retrieved chunks are injected into the **question generation** phase for richer, context-aware reasoning.
+- Retrieved chunks are injected into the **question generation phase** for richer, context-aware reasoning.
 
 This enables the chatbot to:
 - Ask **personalized follow-up questions** grounded in the candidate’s real experience.  
 - **Evaluate responses** more accurately against background knowledge.  
 - Keep the entire interview **contextually consistent** across turns.
 
+### 1.5 Slack Feedback Integration
+At the end of the interview, the system can **send summarized feedback and evaluation results to a Slack channel** using a **Slack Incoming Webhook URL** defined in the `.env` file.  
+This helps teams review interview performance and maintain a shared feedback record directly within Slack.
 
 
-### 1.5 Prompts and Configuration
+### 1.6 Prompts and Configuration
 
 Uses structured prompt templates and environment-driven configuration to ensure consistency and security across sessions.
 
-### 1.6 Logging
+### 1.7 Logging
 
 Includes structured terminal logging for all key steps, making debugging and tracking straightforward.
 
@@ -72,7 +76,7 @@ Ensure the following are installed:
 Create a `.env` file in the project root with your API keys.
 You can refer to the `.env_example` file included in the project for required variables.
 
----
+
 
 ### 2.3 Setup Steps
 
@@ -98,10 +102,8 @@ python main.py
 
 You’ll be prompted to:
 
-1. Enter cv path
+1. Enter **cv path**
 2. Enter an **interview topic** (e.g., “Python”, “R Language”, “Machine Learning”).
 3. Choose the **question type** – `broad`, `narrow_up`, or `follow_up`.
 
-The system will then conduct a complete AI-driven interview session directly in the terminal.
-
-
+The system will then conduct a complete AI-driven interview session directly in the terminal and optionally **send the feedback summary to your Slack channel**.
