@@ -1,155 +1,62 @@
 import textwrap
 from typing import Literal
-from services.gemini_client import gemini_client
-from utils.logger import setup_logger
-
-logger = setup_logger(__name__)
-# -------------------------------
-# Utility functions
-# -------------------------------
+from utils.generation import safe_text, build_prompt
 
 
-def get_setup_prompt(topic: str, question_type: str) -> str:
-    return f"""
-    You are conducting a technical interview for a {topic} position.
-    Generate an initial interview question that assesses basic knowledge and experience.
-    """
-
-
-def get_rag_setup_prompt(topic: str, question_type: str, context: str) -> str:
-    return f"""
-    You are conducting a technical interview for a {topic} position.
-
-    Candidate Background:
-    {context}
-
-    Generate the first interview question that considers the candidate's experience.
-    """
-
-
-def get_question_generation_prompt(content: str, topic: str, step: int) -> str:
-    return f"""
-    Generate the next interview question for a {topic} position.
-
-    Conversation so far:
-    {content}
-
-    Current step: {step + 1}
-
-    Next question:
-    """
-
-
-def get_rag_question_generation_prompt(
-    content: str, topic: str, step: int, context: str
+def get_setup_prompt(
+    topic: str, question_type: str, context: str, tool_used: str
 ) -> str:
-    return f"""
-    Generate the next interview question for a {topic} position.
-
-    Candidate Background:
-    {context}
-
-    Conversation so far:
-    {content}
-
-    Current step: {step + 1}
-
-    Next question:
     """
-
-
-# ===== UTIL =====
-
-
-def safe_prompt(fstring: str) -> str:
-    return textwrap.dedent(fstring).strip()
-
-
-def _safe_generate(prompt: str, fallback: str) -> str:
-    try:
-        return gemini_client.generate_content(prompt) or fallback
-    except Exception as e:
-        logger.error("Generation failed: %s", e)
-        return fallback
-
-
-def safe_text(text: str, max_len: int = 2000) -> str:
+    Returns the initial interview question prompt.
+    Uses retrieved context if tool_used == 'RAG'.
     """
-    Sanitize and truncate user-provided or large text to avoid context overflow
-    and unwanted characters.
-    """
-    if not text:
-        return ""
-    sanitized = str(text).replace("\r", "").replace("\t", "    ")
-    return sanitized[:max_len]
+    if tool_used == "RAG" and context:
+        body = f"""
+        You are conducting a technical interview for a {topic} position.
 
+        Candidate Background:
+        {context}
 
-def build_prompt(role_desc: str, content: str, body: str) -> str:
-    """
-    Standard prompt builder to avoid duplication.
-    Applies safe_text to content and strips extra whitespace.
-    """
-    return textwrap.dedent(
-        f"""
-        You are {role_desc}.
-        Using the following reference content:
-        {safe_text(content)}
+        Generate the first interview question considering the candidate's experience.
+        """
+    else:
+        body = f"""
+        You are conducting a technical interview for a {topic} position.
 
-        {body}
-    """
-    ).strip()
-
-
-# -------------------------------
-# Setup and Initial Question Prompts
-# -------------------------------
-
-
-def get_setup_prompt(content_text: str, topic: str, question_type: str) -> str:
-    """Prompt for generating the first question"""
-    question_style = (
-        "Ask a broad, general question."
-        if question_type.startswith("broad")
-        else "Ask a specific, detailed question."
-    )
-    body = f"Generate question #1 for the topic: {topic}.\n{question_style}\nReturn ONLY the question text."
-    return build_prompt("an expert interviewer", content_text, body)
-
-
-# -------------------------------
-# Question Generation Prompts
-# -------------------------------
+        Generate an opening question that assesses basic knowledge and experience.
+        """
+    return build_prompt("an expert interviewer", context, body)
 
 
 def get_question_generation_prompt(
-    content_text: str, prompt_instruction: str, topic: str, step: int
-) -> str:
-    """Prompt for generating follow-up questions"""
-    body = f"{prompt_instruction}\nTopic: {topic}\nQuestion number: {step + 1}\nReturn ONLY the question text."
-    return build_prompt("an expert interviewer", content_text, body)
-
-
-def get_question_instruction(
-    is_followup: bool, is_broad: bool, previous_answer: str = ""
+    content_text: str, topic: str, step: int, tool_used: str, context: str
 ) -> str:
     """
-    Generate the instruction part for question generation.
-    Avoids awkward references when previous_answer is empty.
+    Generates follow-up question prompts.
+    Uses RAG or Tavily context depending on tool_used.
     """
-    style = "broad, general" if is_broad else "specific, detailed"
-    scope = "follow-up" if is_followup else "new aspect"
+    if tool_used == "RAG" and context:
+        body = f"""
+        Generate the next interview question for a {topic} position.
 
-    if is_followup and previous_answer.strip():
-        return f"Generate a {style} {scope} question that directly probes details from the previous answer: {previous_answer}"
-    elif is_followup:
-        return f"Generate a {style} {scope} question that builds on the previous discussion."
+        Candidate Background:
+        {context}
+
+        Conversation so far:
+        {content_text}
+
+        Question number: {step + 1}
+        """
     else:
-        return f"Generate a {style} {scope} question that explores a new aspect of the topic, independent of the previous answer."
+        body = f"""
+        Generate the next interview question for a {topic} position.
 
+        Conversation so far:
+        {content_text}
 
-# -------------------------------
-# Generic Evaluation Prompt
-# -------------------------------
+        Question number: {step + 1}
+        """
+    return build_prompt("an expert interviewer", content_text, body)
 
 
 def get_evaluation_prompt(
@@ -161,60 +68,49 @@ def get_evaluation_prompt(
     last_answer: str = "",
 ) -> str:
     """
-    Generic evaluation prompt for either 'question' or 'answer'.
-    Sanitizes all inputs and prevents exceeding context.
+    Generic evaluation prompt for questions or answers.
+    Returns JSON only.
     """
     kind_desc = "question" if kind == "question" else "candidate answer"
-
-    body = textwrap.dedent(
-        f"""
-        Evaluate the following {kind_desc} for its clarity, relevance, depth, and alignment with the topic,
-        considering the ENTIRE interview history, accumulated context, all previous messages, questions, answers, and feedback.
-
-        Full Interview History (Messages): {safe_text(full_messages)}
-        Accumulated Context (Search Snippets): {safe_text(full_content)}
-        Previous Q&A Transcript: {safe_text(transcript)}
+    body = f"""
+        Evaluate the following {kind_desc} for clarity, relevance, depth, and alignment.
+        Full Messages: {safe_text(full_messages)}
+        Context: {safe_text(full_content)}
+        Transcript: {safe_text(transcript)}
         Current Question: {safe_text(last_question)}
-        Current Candidate Answer: {safe_text(last_answer)}
-
-        Provide a rating (1-10) for {kind_desc} quality and detailed feedback. Return JSON only, no extra text
+        Current Answer: {safe_text(last_answer)}
+        Provide a rating (1-10) and detailed feedback.
+        Return JSON only.
     """
-    )
 
     if kind == "answer":
         body += textwrap.dedent(
             """
-            Return in JSON format:
-            {
-                "rating": 0,
-                "feedback": "..."
-            }
+        Return in JSON format:
+        {
+            "rating": 0,
+            "feedback": "..."
+        }
         """
         )
-
     return build_prompt("an expert interviewer", "", body)
 
 
-# -------------------------------
-# Final Evaluation Prompt
-# -------------------------------
-
-
 def get_final_evaluation_prompt(transcript: str) -> str:
-    """Prompt for final evaluation of all questions"""
-    body = textwrap.dedent(
-        f"""
-        Based on this transcript, produce a JSON summary evaluation of the questions:
+    """
+    Produces final evaluation JSON for the entire interview.
+    """
+    body = f"""
+        Based on the transcript, produce a JSON summary evaluation:
         {safe_text(transcript)}
-        return only JSON, no extra text
-        JSON format ONLY, with explicit types:
+        Return JSON only. Schema:
         {{
-            "overall_quality": 0,             # integer 1-10
-            "strengths": ["..."],             # list of strings
-            "areas_for_improvement": ["..."], # list of strings
-            "recommendation": "...",          # string: keep/revise/remove
-            "final_feedback": "..."           # string
+            "overall_quality": 0,
+            "strengths": ["..."],
+            "areas_for_improvement": ["..."],
+            "recommendation": "...",
+            "final_feedback": "..."
         }}
     """
-    ).strip()
+
     return build_prompt("an expert interviewer", "", body)

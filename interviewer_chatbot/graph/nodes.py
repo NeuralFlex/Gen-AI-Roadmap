@@ -4,88 +4,32 @@ import time
 import textwrap
 from dataclasses import dataclass
 from typing import Any, Dict, List, Mapping
+
+import requests
+
+from utils.interview_results import render_interview_results
+from utils.logger import setup_logger
+from utils.generation import build_prompt, safe_parse_json, safe_text, _safe_generate
+from utils.prompt_template import safe_prompt
+
 from services.tavily_client import tavily_service
+from services.gemini_client import gemini_client
+
 from langchain_community.vectorstores import FAISS
 
 from graph.state import InterviewState
-from services.gemini_client import gemini_client
-from utils.vectorstore import embeddings
-from utils.logger import setup_logger
+from models.embedding_model import embeddings
+from models.final_evaluation import FinalEvaluation
 from config.prompts import (
     get_setup_prompt,
     get_evaluation_prompt,
     get_question_generation_prompt,
-    get_question_instruction,
     get_final_evaluation_prompt,
-    get_rag_question_generation_prompt,
 )
 
 logger = setup_logger(__name__)
 
 
-def safe_prompt(fstring: str) -> str:
-    return textwrap.dedent(fstring).strip()
-
-
-def _safe_generate(prompt: str, fallback: str) -> str:
-    try:
-        return gemini_client.generate_content(prompt) or fallback
-    except Exception as e:
-        logger.error("Generation failed: %s", e)
-        return fallback
-
-
-def safe_parse_json(response: Any) -> Dict[str, Any]:
-    fallback = {"rating": 6, "feedback": "Good effort. Could elaborate more."}
-
-    if not response:
-        return fallback
-
-    if isinstance(response, dict):
-        return response
-
-    text = None
-    if hasattr(response, "text"):
-        text = response.text
-    elif hasattr(response, "content"):
-        text = response.content
-    elif isinstance(response, str):
-        text = response
-
-    if not text:
-        return fallback
-
-    try:
-        return json.loads(text)
-    except Exception:
-        try:
-            start, end = text.find("{"), text.rfind("}") + 1
-            return json.loads(text[start:end])
-        except Exception:
-            return {**fallback, "raw_text": text[:500]}
-
-
-@dataclass
-class FinalEvaluation:
-    overall_quality: int
-    strengths: List[str]
-    areas_for_improvement: List[str]
-    recommendation: str
-    final_feedback: str
-
-    def model_dump(self) -> Dict[str, Any]:
-        return {
-            "overall_quality": self.overall_quality,
-            "strengths": self.strengths,
-            "areas_for_improvement": self.areas_for_improvement,
-            "recommendation": self.recommendation,
-            "final_feedback": self.final_feedback,
-        }
-
-
-# -------------------------
-# Retrieval Logic
-# -------------------------
 def decide_retrieval(query: str, user_id: str = "default_user"):
     """Decides whether retrieval is needed based on similarity scores."""
     try:
@@ -130,8 +74,10 @@ def setup_node(state: Mapping[str, Any]) -> Dict[str, Any]:
             logger.info("Retrieved setup context for topic: %s", topic)
     except Exception as e:
         logger.error("Setup retrieval failed: %s", e)
-
-    prompt = safe_prompt(get_setup_prompt(retrieved_context, topic, question_type))
+    # topic: str, question_type: str, context: str, tool_used: str
+    prompt = safe_prompt(
+        get_setup_prompt(topic, question_type, retrieved_context, "RAG")
+    )
     first_question = _safe_generate(
         prompt, "Tell me about your experience with this technology."
     )
@@ -237,7 +183,11 @@ def tavily_search_node(state: Mapping[str, Any]) -> Dict[str, Any]:
                 (state.get("retrieved_context") or "") + "\n\n" + "\n\n".join(snippets)
             )
             logger.info("Tavily search added %d snippets to context", len(snippets))
-            return {**state, "retrieved_context": enriched_context}
+            return {
+                **state,
+                "retrieved_context": enriched_context,
+                "tavily_snippets": snippets,
+            }
         return state
     except Exception as e:
         logger.error("Tavily search failed: %s", e)
@@ -270,10 +220,16 @@ def generate_question_node(state: InterviewState) -> InterviewState:
         "Using %s context for question generation.", " + ".join(context_sources)
     )
 
+    # content_text: str, topic: str, step: int, tool_used: str, context: str
     full_content = "\n".join(content_list + context_text)
+    context_str = "\n".join(context_text)
 
-    prompt = get_rag_question_generation_prompt(
-        full_content, topic, step, "\n".join(context_text)
+    prompt = get_question_generation_prompt(
+        content_text=full_content,
+        topic=topic,
+        step=step,
+        tool_used=context_sources[0],
+        context=context_str,
     )
 
     question = _safe_generate(
@@ -377,39 +333,9 @@ def final_evaluation_node(state: Mapping[str, Any]) -> Dict[str, Any]:
 
 
 def display_results_node(state: InterviewState) -> InterviewState:
-    """Display interview results and answer feedback in console instead of saving to JSON."""
-    user_id = state.get("user_id", "unknown_user")
-    topic = state.get("topic", "unknown_topic")
-
-    logger.info("🚀 Final evaluation for user '%s' on topic '%s':", user_id, topic)
-
-    # Print per-question feedback
-    questions = state.get("questions", [])
-    answers = state.get("answers", [])
-    feedback_list = state.get("feedback", [])
-
-    print("\nINTERVIEW FEEDBACK PER QUESTION")
-    print("-" * 70)
-    for i, (q, a) in enumerate(zip(questions, answers)):
-        print(f"Q{i+1}: {q}")
-        print(f"A{i+1}: {a}")
-        fb = feedback_list[i] if i < len(feedback_list) else {}
-        answer_fb = fb.get("answer_feedback", {}).get("feedback", "No feedback")
-        question_fb = fb.get("question_feedback", {}).get("feedback", "No feedback")
-        print(f"Question Feedback: {question_fb}")
-        print(f"Answer Feedback: {answer_fb}")
-        print("-" * 70)
-
-    final_eval = state.get("final_evaluation", {})
-    if final_eval:
-        print("\nFINAL EVALUATION")
-        print("-" * 70)
-        for key, value in final_eval.items():
-            if isinstance(value, list):
-                for item in value:
-                    print(f" - {item}")
-            else:
-                print(f"{key}: {value}")
-        print("=" * 70)
-
+    """
+    Display interview results and send them to Slack.
+    Uses the shared `render_interview_results` utility.
+    """
+    render_interview_results(state)
     return state
