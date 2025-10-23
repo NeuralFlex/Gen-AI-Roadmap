@@ -6,6 +6,9 @@ load_dotenv()
 GEMINI_API_KEY = os.getenv("GOOGLE_API_KEY")
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 gemini_model = os.getenv("GEMINI_MODEL")
+gemini_embedding_model = os.getenv(
+    "GEMINI_EMBEDDING_MODEL", "models/gemini-embedding-001"
+)
 
 if not GEMINI_API_KEY:
     raise ValueError("GEMINI_API_KEY not found in environment variables!")
@@ -18,6 +21,7 @@ class Settings:
         self.gemini_api_key = GEMINI_API_KEY
         self.tavily_api_key = TAVILY_API_KEY
         self.gemini_model = gemini_model
+        self.gemini_embedding_model = gemini_embedding_model
 
 
 settings = Settings()
