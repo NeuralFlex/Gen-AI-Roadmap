@@ -12,6 +12,9 @@ from graph.nodes import (
     tavily_search_node,
 )
 from utils.logger import setup_logger
+from langgraph.checkpoint.memory import MemorySaver
+import sqlite3
+from langgraph.checkpoint.sqlite import SqliteSaver
 
 logger = setup_logger(__name__)
 
@@ -27,32 +30,31 @@ DISPLAY_RESULTS_NODE = "display_results"
 
 
 def should_retrieve(state: InterviewState) -> str:
-    """Decide whether to run RAG retrieval or Tavily search."""
     return RETRIEVAL_NODE if state["needs_retrieval"] else TAVILY_SEARCH_NODE
 
 
 def should_continue(state: InterviewState) -> str:
-    """Decide whether to continue the interview or move to final evaluation."""
-    return (
-        GET_ANSWER_NODE
-        if state["step"] < state["max_questions"]
-        else FINAL_EVALUATION_NODE
-    )
+    if state.get("waiting_for_user", False):
+        return END
+    if state.get("step", 0) >= state.get("max_steps", 10):
+        return FINAL_EVALUATION_NODE
+    return GET_ANSWER_NODE
 
 
 def should_generate_question(state: InterviewState) -> str:
-    """Determine whether to generate another question or proceed to final evaluation."""
     return (
         GENERATE_QUESTION_NODE
-        if state["step"] < state["max_questions"]
+        if state["step"] < state["max_steps"]
         else FINAL_EVALUATION_NODE
     )
 
 
-def create_interview_graph() -> StateGraph:
-    """Build and compile the full interview flow graph with RAG and Tavily nodes."""
-    logger.info("Initializing interview graph with RAG + Tavily search flow...")
+def should_start_or_wait(state: InterviewState) -> str:
+    return END if state.get("waiting_for_user", False) else GET_ANSWER_NODE
 
+
+def create_interview_graph() -> StateGraph:
+    logger.info("Initializing interview graph with RAG + Tavily search flow...")
     builder = StateGraph(InterviewState)
 
     builder.add_node(SETUP_NODE, setup_node)
@@ -66,49 +68,50 @@ def create_interview_graph() -> StateGraph:
     builder.add_node(DISPLAY_RESULTS_NODE, display_results_node)
 
     builder.set_entry_point(SETUP_NODE)
-    builder.add_edge(SETUP_NODE, GET_ANSWER_NODE)
+
+    builder.add_conditional_edges(
+        SETUP_NODE,
+        should_start_or_wait,
+        {GET_ANSWER_NODE: GET_ANSWER_NODE, END: END},
+    )
+
     builder.add_edge(GET_ANSWER_NODE, RETRIEVAL_DECISION_NODE)
 
     builder.add_conditional_edges(
         RETRIEVAL_DECISION_NODE,
         should_retrieve,
-        {
-            RETRIEVAL_NODE: RETRIEVAL_NODE,
-            TAVILY_SEARCH_NODE: TAVILY_SEARCH_NODE,
-        },
+        {RETRIEVAL_NODE: RETRIEVAL_NODE, TAVILY_SEARCH_NODE: TAVILY_SEARCH_NODE},
     )
 
-    builder.add_conditional_edges(
-        RETRIEVAL_NODE,
-        should_generate_question,
-        {
-            GENERATE_QUESTION_NODE: GENERATE_QUESTION_NODE,
-            FINAL_EVALUATION_NODE: FINAL_EVALUATION_NODE,
-        },
-    )
+    builder.add_edge(RETRIEVAL_NODE, GENERATE_QUESTION_NODE)
+    builder.add_edge(TAVILY_SEARCH_NODE, GENERATE_QUESTION_NODE)
 
     builder.add_conditional_edges(
-        TAVILY_SEARCH_NODE,
-        should_generate_question,
-        {
-            GENERATE_QUESTION_NODE: GENERATE_QUESTION_NODE,
-            FINAL_EVALUATION_NODE: FINAL_EVALUATION_NODE,
-        },
-    )
-
-    builder.add_edge(GENERATE_QUESTION_NODE, EVALUATE_QUESTION_NODE)
-
-    builder.add_conditional_edges(
-        EVALUATE_QUESTION_NODE,
+        GENERATE_QUESTION_NODE,
         should_continue,
         {
             GET_ANSWER_NODE: GET_ANSWER_NODE,
+            EVALUATE_QUESTION_NODE: EVALUATE_QUESTION_NODE,
             FINAL_EVALUATION_NODE: FINAL_EVALUATION_NODE,
+            END: END,
         },
     )
 
+    builder.add_edge(EVALUATE_QUESTION_NODE, FINAL_EVALUATION_NODE)
     builder.add_edge(FINAL_EVALUATION_NODE, DISPLAY_RESULTS_NODE)
     builder.add_edge(DISPLAY_RESULTS_NODE, END)
 
-    logger.info("Interview graph successfully compiled with RAG ↔ Tavily logic.")
-    return builder.compile()
+    logger.info("✅ Interview graph successfully compiled with RAG ↔ Tavily logic.")
+
+    try:
+        conn = sqlite3.connect("checkpoints.sqlite", check_same_thread=False)
+        memory = SqliteSaver(conn)
+        logger.info("✅ Using SQLite checkpoint saver.")
+    except Exception as e:
+        logger.warning("⚠️ SQLite saver failed, using in-memory checkpoint: %s", e)
+        memory = MemorySaver()
+
+    return builder.compile(checkpointer=memory)
+
+
+compiled_graph = create_interview_graph()
