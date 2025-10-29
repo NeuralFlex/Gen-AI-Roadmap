@@ -11,6 +11,8 @@ app = FastAPI()
 
 
 class ContinueRequest(BaseModel):
+    """Request model for continuing an existing interview session."""
+
     user_response: str
     thread_id: str
 
@@ -25,12 +27,15 @@ async def start_interview(
     Start a new interview session.
 
     Args:
-        job_title (str): Topic for the interview.
-        question_type (str): Type of questions to ask.
-        cv (UploadFile, optional): Candidate's CV file.
+        job_title (str): The title or role for which the interview is being conducted.
+        question_type (str): The type of questions (e.g., technical, behavioral).
+        cv (Optional[UploadFile]): Optional CV file to extract contextual data from.
 
     Returns:
-        dict: JSON containing thread_id, current question, and step info.
+        dict: The initial interview question and session details.
+
+    Raises:
+        HTTPException: If interview initialization fails.
     """
     thread_id = str(uuid.uuid4())
     config = {"configurable": {"thread_id": thread_id}}
@@ -38,14 +43,12 @@ async def start_interview(
     cv_text = ""
 
     try:
-        # Process CV if provided
         if cv:
             cv_bytes = await cv.read()
             cv_text = extract_text_from_pdf_bytes(cv_bytes)
             document = chunk_cv_text(cv_text, user_id=user_id)
             create_vectorstore(document, user_id=user_id)
 
-        # Initialize interview state
         initial_state = {
             "topic": job_title,
             "content": [],
@@ -57,7 +60,7 @@ async def start_interview(
             "current_question": None,
             "current_answer": None,
             "step": 0,
-            "max_steps": 3,
+            "max_steps": 2,
             "final_evaluation": None,
             "messages": [],
             "question_type": question_type,
@@ -69,7 +72,6 @@ async def start_interview(
 
         final_state = compiled_graph.invoke(initial_state, config=config)
 
-        # Return first question
         return {
             "thread_id": thread_id,
             "status": "question",
@@ -85,39 +87,37 @@ async def start_interview(
 @app.post("/continue_interview")
 async def continue_interview(req: ContinueRequest):
     """
-    Continue an ongoing interview with the candidate's response.
+    Continue an existing interview session by providing a user's response.
 
     Args:
-        req (ContinueRequest): Contains thread_id and user_response.
+        req (ContinueRequest): The user's response and associated thread ID.
 
     Returns:
-        dict: JSON containing next question or final feedback.
+        dict: The next interview question or final evaluation.
+
+    Raises:
+        HTTPException: If continuation or state retrieval fails.
     """
     config = {"configurable": {"thread_id": req.thread_id}}
 
     try:
-        # Fetch existing state
         existing_state = compiled_graph.get_state(config)
         if not existing_state:
             raise HTTPException(
                 status_code=400, detail="No ongoing interview for this thread."
             )
 
-        # Convert GraphState to dict if needed
         if hasattr(existing_state, "values"):
             state_dict = dict(existing_state.values)
         else:
             state_dict = dict(existing_state)
 
-        # Merge user input
         state_dict["user_response"] = req.user_response
         state_dict["waiting_for_user"] = False
 
-        # Invoke graph
         final_state = compiled_graph.invoke(state_dict, config=config)
         messages = final_state.get("messages", [])
 
-        # Check if interview is completed
         if messages and messages[-1].get("role") == "system":
             return {
                 "thread_id": req.thread_id,
@@ -133,10 +133,11 @@ async def continue_interview(req: ContinueRequest):
                 "status": "completed",
                 "message": final_state["feedback"],
                 "current_step": final_state.get("step", 1),
+                "feedback_list": final_state["feedback"],
+                "final_evaluation": final_state["final_evaluation"],
                 "max_steps": final_state.get("max_steps", 3),
             }
 
-        # Return next assistant message
         for msg in reversed(messages):
             if msg.get("role") == "assistant":
                 return {
@@ -147,7 +148,6 @@ async def continue_interview(req: ContinueRequest):
                     "max_steps": final_state.get("max_steps", 3),
                 }
 
-        # Fallback if no assistant message found
         if messages:
             return {
                 "thread_id": req.thread_id,
@@ -161,6 +161,8 @@ async def continue_interview(req: ContinueRequest):
             status_code=500, detail="No response generated from the graph."
         )
 
+    except HTTPException as e:
+        raise e
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Failed to continue interview: {e}"
@@ -170,13 +172,16 @@ async def continue_interview(req: ContinueRequest):
 @app.get("/debug/{thread_id}")
 async def debug_interview(thread_id: str):
     """
-    Debug endpoint to inspect the current state of an interview.
+    Retrieve the current state of an ongoing interview for debugging purposes.
 
     Args:
-        thread_id (str): Thread ID of the interview.
+        thread_id (str): The unique identifier of the interview session.
 
     Returns:
-        dict: Current state values or error.
+        dict: State details, next node, and configuration if found.
+
+    Raises:
+        HTTPException: If state retrieval fails.
     """
     config = {"configurable": {"thread_id": thread_id}}
     try:
