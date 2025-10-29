@@ -1,8 +1,9 @@
-# 🧠 Interviewer Chatbot
 
-A **LangGraph-powered terminal application** that conducts AI-driven technical interviews.  
-It dynamically generates and evaluates interview questions using **Gemini** and **Tavily APIs**, manages state with a **LangGraph-based workflow**, and retrieves relevant CV context using **vector embeddings**, effectively using **RAG** to enhance the interview experience when necessary.  
-It can also send **interview feedback summaries directly to a Slack channel** using **webhooks** for team visibility.
+# 🧠 Interviewer Chatbot (Web Version)
+
+An **AI-driven technical interviewer** powered by **LangGraph**, served through a **Streamlit web interface** and a **FastAPI backend**.  
+It dynamically generates and evaluates interview questions using **Gemini** and **Tavily APIs**, manages conversation flow with **LangGraph**, and persists state using a **SQLite-based checkpoint system**, allowing interviews to resume seamlessly between interactions.
+
 
 ---
 
@@ -13,49 +14,56 @@ It can also send **interview feedback summaries directly to a Slack channel** us
    - [2.1 Prerequisites](#21-prerequisites)  
    - [2.2 Environment Configuration](#22-environment-configuration)  
    - [2.3 Setup Steps](#23-setup-steps)  
-   - [2.4 Running the Application](#24-running-the-application)  
+3. [Running the Application](#3-running-the-application)  
+   - [3.1 Start the FastAPI Backend](#31-start-the-fastapi-backend)  
+   - [3.2 Start the Streamlit Frontend](#32-start-the-streamlit-frontend)  
+   - [3.3 Workflow Summary](#33-workflow-summary)
 
 ---
 
 ## 1. Core Components
 
 ### 1.1 Interview Graph
-Implements the main interview logic as a **directed LangGraph**, where each node represents a stage of the interview process — setup, question generation, answer evaluation, and final summary.
+Implements the main interview logic as a **directed LangGraph**, where each node represents a stage of the interview process — setup, question generation, answer evaluation, retrieval, and final summary.
 
 ### 1.2 Stateful Interview Management
-Maintains all session variables such as topic, current step, generated questions, and recorded responses throughout the interview session.
+Maintains all session variables such as topic, current step, generated questions, and recorded responses throughout the interview session.  
+State is **persisted using `SqliteSaver`**, allowing the interview to **resume exactly where it left off**.
+
 
 ### 1.3 AI & Knowledge Services
-- **Gemini** powers dynamic question generation and answer evaluation.  
-- **Tavily** enriches the process with contextual background knowledge and relevant references.
+- **Gemini** powers question generation and response evaluation.  
+- **Tavily** enriches reasoning with background knowledge and contextual references.
 
 ### 1.4 Vector Database & Embeddings
 Integrates **vector similarity search** to enhance interview personalization:
 
-- The candidate’s **CV is split into text chunks.**  
-- Each chunk is **converted into an embedding vector** using an embedding model (e.g., Gemini or OpenAI).  
-- When the candidate answers a question, their answer is also **embedded.**  
-- The system computes the **distance (cosine similarity or Euclidean distance)** between the answer embedding and each CV chunk.  
-- **Relevant CV chunks** are retrieved if the **distance is below a predefined threshold** (e.g., 0.55).  
-- Retrieved chunks are injected into the **question generation phase** for richer, context-aware reasoning.
+- The candidate’s **CV is split into text chunks**.  
+- Each chunk is **converted into an embedding vector** using an embedding model.  
+- The candidate’s **answers are also embedded**, and their similarity to CV chunks is computed.  
+- If the **distance is below a threshold** (e.g., 0.55), relevant CV chunks are retrieved.  
+- Retrieved context is injected into the **question generation** and **evaluation** steps for more personalized reasoning.
 
 This enables the chatbot to:
-- Ask **personalized follow-up questions** grounded in the candidate’s real experience.  
-- **Evaluate responses** more accurately against background knowledge.  
-- Keep the entire interview **contextually consistent** across turns.
+- Ask **personalized follow-up questions** grounded in the candidate’s experience.  
+- **Evaluate answers** more accurately with background context.  
+- Maintain **contextual coherence** throughout the interview.
 
-### 1.5 Slack Feedback Integration
-At the end of the interview, the system can **send summarized feedback and evaluation results to a Slack channel** using a **Slack Incoming Webhook URL** defined in the `.env` file.  
-This helps teams review interview performance and maintain a shared feedback record directly within Slack.
+### 1.5 Frontend (Streamlit)
+The **Streamlit web app (`app.py`)** handles:
+- CV upload  
+- Job title input  
+- Question type selection (`broad`, `narrow_up`, `follow_up`)  
+- Real-time question and answer display  
 
+It communicates with the backend through HTTP requests to FastAPI endpoints.
 
-### 1.6 Prompts and Configuration
-
-Uses structured prompt templates and environment-driven configuration to ensure consistency and security across sessions.
-
-### 1.7 Logging
-
-Includes structured terminal logging for all key steps, making debugging and tracking straightforward.
+### 1.6 Backend (FastAPI)
+The **FastAPI server (`main.py`)** handles:
+- Interview initialization and continuation  
+- LangGraph orchestration  
+- State persistence using SQLite checkpoints  
+- Integration with Gemini and Tavily services  
 
 ---
 
@@ -65,18 +73,18 @@ Includes structured terminal logging for all key steps, making debugging and tra
 
 Ensure the following are installed:
 
-* Python 3.10+
-* pip
-* Virtual environment tool (`venv` or `virtualenv`)
+- Python 3.10+
+- pip
+- Virtual environment tool (`venv` or `virtualenv`)
 
 ---
 
 ### 2.2 Environment Configuration
 
-Create a `.env` file in the project root with your API keys.
-You can refer to the `.env_example` file included in the project for required variables.
+Create a `.env` file in the project root containing your API keys and configuration values.  
+Refer to the `.env_example` file included in the repository for required variables.
 
-
+---
 
 ### 2.3 Setup Steps
 
@@ -88,22 +96,50 @@ venv\Scripts\activate      # On Windows
 
 # Install dependencies
 pip install -r requirements.txt
-```
 
----
+3. Running the Application
 
-### 2.4 Running the Application
+You need to start both the FastAPI backend and the Streamlit frontend.
+3.1 Start the FastAPI Backend
 
-Once setup is complete, launch the chatbot from your terminal:
+Run the backend, which hosts the interview logic and LangGraph state management:
 
 ```bash
 python main.py
 ```
 
-You’ll be prompted to:
+Or, using `uvicorn`:
 
-1. Enter **cv path**
-2. Enter an **interview topic** (e.g., “Python”, “R Language”, “Machine Learning”).
-3. Choose the **question type** – `broad`, `narrow_up`, or `follow_up`.
+```bash
+uvicorn main:app --reload
+```
 
-The system will then conduct a complete AI-driven interview session directly in the terminal and optionally **send the feedback summary to your Slack channel**.
+This will start the backend at [http://127.0.0.1:8000](http://127.0.0.1:8000).
+
+---
+
+### 3.2 Start the Streamlit Frontend
+
+Run the Streamlit web application:
+
+```bash
+streamlit run app.py
+```
+
+This will open the UI in your browser at [http://localhost:8501](http://localhost:8501).
+
+---
+
+### 3.3 Workflow Summary
+
+    User interacts with the Streamlit UI (uploads CV, selects topic/type).
+
+    Streamlit sends data to the FastAPI backend.
+
+    FastAPI invokes the LangGraph interview graph, managing flow and checkpoints via SqliteSaver.
+
+    Updated interview state is saved and can be resumed later.
+
+    Responses and new questions are streamed back to the Streamlit UI in real-time.
+
+✅ With this setup, you have a fully persistent, web-based AI interviewer that uses LangGraph, Gemini, Tavily, and SQLite checkpoints to conduct context-aware technical interviews.
