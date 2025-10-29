@@ -1,4 +1,0 @@
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from config.settings import settings
-
-embeddings = GoogleGenerativeAIEmbeddings(model=settings.gemini_embedding_model)
