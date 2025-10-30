@@ -1,12 +1,17 @@
 import streamlit as st
 import requests
 from datetime import datetime
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
+
+backend_url = os.getenv("BACKEND_URL")
 
 st.set_page_config(page_title="AI Interviewer", page_icon="brain")
 
-BACKEND_START = "http://localhost:8000/start_interview"
-BACKEND_CONTINUE = "http://localhost:8000/continue_interview"
+BACKEND_START = f"{backend_url}/start_interview"
+BACKEND_CONTINUE = f"{backend_url}/continue_interview"
 
 
 for key in [
