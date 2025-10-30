@@ -19,3 +19,14 @@ interviewer_chatbot/.ipynb_checkpoints/
 faiss_index_user123
 
 *.pdf
+
+# Ignore SQLite database files
+*.sqlite
+*.sqlite3
+
+# Ignore SQLite temporary and journal files
+*.sqlite-wal
+*.sqlite-shm
+*.db
+
+**/__init__.py

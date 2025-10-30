@@ -6,7 +6,7 @@ from utils.logger import setup_logger
 logger = setup_logger(__name__)
 
 
-def render_interview_results(state: dict, destination: str = "console"):
+def render_interview_results(state: dict, destination: str = "both"):
     """
     Render interview results to console, Slack, or both.
 
