@@ -6,12 +6,12 @@ import os
 
 load_dotenv()
 
-backend_url = os.getenv("BACKEND_URL")
+BACKEND_URL = os.getenv("BACKEND_URL")
 
 st.set_page_config(page_title="AI Interviewer", page_icon="brain")
 
-BACKEND_START = f"{backend_url}/start_interview"
-BACKEND_CONTINUE = f"{backend_url}/continue_interview"
+BACKEND_START_ENDPOINT = f"{BACKEND_URL}/start_interview"
+BACKEND_CONTINUE_ENDPOINT = f"{BACKEND_URL}/continue_interview"
 
 
 for key in [
@@ -109,7 +109,7 @@ elif not st.session_state.interview_started:
             }
 
             try:
-                r = requests.post(BACKEND_START, data=data, files=files)
+                r = requests.post(BACKEND_START_ENDPOINT, data=data, files=files)
                 if r.status_code == 200:
                     d = r.json()
                     st.session_state.interview_started = True
@@ -174,7 +174,7 @@ else:
 
         try:
             resp = requests.post(
-                BACKEND_CONTINUE,
+                BACKEND_CONTINUE_ENDPOINT,
                 json={
                     "user_response": user_msg,
                     "thread_id": st.session_state.thread_id,
