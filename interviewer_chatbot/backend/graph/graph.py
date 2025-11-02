@@ -13,8 +13,10 @@ from graph.nodes import (
 )
 from utils.logger import setup_logger
 from langgraph.checkpoint.memory import MemorySaver
-import sqlite3
-from langgraph.checkpoint.sqlite import SqliteSaver
+import psycopg
+from langgraph.checkpoint.postgres import PostgresSaver
+import os
+from config.settings import settings
 
 logger = setup_logger(__name__)
 
@@ -93,9 +95,52 @@ def should_start_or_wait(state: InterviewState) -> str:
     return END if state.get("waiting_for_user", False) else GET_ANSWER_NODE
 
 
+def get_postgres_checkpointer():
+    """
+    Create PostgreSQL checkpointer with fallback to SQLite and then Memory.
+
+    Returns:
+        Checkpoint saver instance (PostgresSaver, SqliteSaver, or MemorySaver)
+    """
+    try:
+
+        from langgraph.checkpoint.postgres import PostgresSaver
+        import psycopg
+
+        conn = psycopg.connect(settings.database_url)
+        checkpointer = PostgresSaver(conn)
+
+        checkpointer.setup()
+
+        logger.info("✅ Using PostgreSQL checkpointer")
+        return checkpointer
+
+    except ImportError as e:
+        logger.warning("⚠️ PostgreSQL checkpoint package not available: %s", e)
+    except psycopg.OperationalError as e:
+        logger.warning("⚠️ Cannot connect to PostgreSQL database: %s", e)
+        logger.warning("⚠️ Make sure PostgreSQL is running and database exists")
+    except Exception as e:
+        logger.warning("⚠️ PostgreSQL setup failed: %s", e)
+
+    try:
+        import sqlite3
+        from langgraph.checkpoint.sqlite import SqliteSaver
+
+        conn = sqlite3.connect("checkpoints.sqlite", check_same_thread=False)
+        checkpointer = SqliteSaver(conn)
+        logger.info("✅ Using SQLite checkpointer (PostgreSQL fallback)")
+        return checkpointer
+    except Exception as e:
+        logger.warning("⚠️ SQLite saver failed: %s", e)
+
+    logger.info("✅ Using in-memory checkpointer (final fallback)")
+    return MemorySaver()
+
+
 def create_interview_graph() -> StateGraph:
     """
-    Create and compile the interview state graph.
+    Create and compile the interview state graph with PostgreSQL checkpoints.
 
     The graph orchestrates the multi-step interview process, including:
         - Setup and initialization.
@@ -103,8 +148,8 @@ def create_interview_graph() -> StateGraph:
         - Generating and evaluating interview questions.
         - Producing final evaluations and displaying results.
 
-    The flow includes checkpointing support using SQLite (preferred)
-    or in-memory fallback.
+    The flow includes checkpointing support using PostgreSQL (preferred),
+    with fallbacks to SQLite and in-memory storage.
 
     Returns:
         StateGraph: Compiled interview graph ready for execution.
@@ -156,17 +201,10 @@ def create_interview_graph() -> StateGraph:
     builder.add_edge(FINAL_EVALUATION_NODE, DISPLAY_RESULTS_NODE)
     builder.add_edge(DISPLAY_RESULTS_NODE, END)
 
-    logger.info("✅ Interview graph successfully compiled with RAG ↔ Tavily logic.")
+    checkpointer = get_postgres_checkpointer()
 
-    try:
-        conn = sqlite3.connect("checkpoints.sqlite", check_same_thread=False)
-        memory = SqliteSaver(conn)
-        logger.info("✅ Using SQLite checkpoint saver.")
-    except Exception as e:
-        logger.warning("⚠️ SQLite saver failed, using in-memory checkpoint: %s", e)
-        memory = MemorySaver()
-
-    return builder.compile(checkpointer=memory)
+    logger.info("✅ Interview graph successfully compiled with PostgreSQL checkpoints.")
+    return builder.compile(checkpointer=checkpointer)
 
 
 compiled_graph = create_interview_graph()
