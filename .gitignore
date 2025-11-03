@@ -30,3 +30,6 @@ faiss_index_user123
 *.db
 
 **/__init__.py
+
+**/lg-ev*/
+**.bin
