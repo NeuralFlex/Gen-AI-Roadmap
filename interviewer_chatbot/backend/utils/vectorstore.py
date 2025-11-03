@@ -2,20 +2,31 @@ import os
 from typing import List
 from langchain_core.documents import Document
 
-# New correct import
-from langchain_community.vectorstores import FAISS
+from langchain_chroma import Chroma
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
-# Initialize embeddings
 embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
 
 
 def create_vectorstore(documents: List[Document], user_id: str = "default_user"):
-    """Create FAISS vectorstore from documents."""
-    index_dir = os.path.join(os.getcwd(), f"faiss_index_{user_id}")
-    os.makedirs(index_dir, exist_ok=True)  # Ensure directory exists
+    """Create ChromaDB vectorstore from documents."""
+    persist_directory = os.path.join(os.getcwd(), f"chroma_db_{user_id}")
+    os.makedirs(persist_directory, exist_ok=True)
+    vectorstore = Chroma.from_documents(
+        documents=documents, embedding=embeddings, persist_directory=persist_directory
+    )
 
-    vectorstore = FAISS.from_documents(documents, embeddings)
-    vectorstore.save_local(index_dir)
+    return vectorstore
 
+
+def load_vectorstore(user_id: str = "default_user"):
+    """Load existing ChromaDB vectorstore."""
+    persist_directory = os.path.join(os.getcwd(), f"chroma_db_{user_id}")
+
+    if not os.path.exists(persist_directory):
+        return None
+
+    vectorstore = Chroma(
+        persist_directory=persist_directory, embedding_function=embeddings
+    )
     return vectorstore
