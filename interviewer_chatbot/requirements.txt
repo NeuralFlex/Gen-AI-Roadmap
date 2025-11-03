@@ -143,7 +143,7 @@ pandas==2.3.3
 pandocfilters==1.5.1
 parso==0.8.5
 pexpect==4.9.0
-pillow==12.0.0
+pillow==11.0.0
 platformdirs==4.4.0
 ply==3.11
 prometheus_client==0.23.1
@@ -201,7 +201,7 @@ soupsieve==2.8
 SQLAlchemy==2.0.43
 sqlite-vec==0.1.6
 stack-data==0.6.3
-starlette==0.50.0
+starlette==0.48.0
 streamlit==1.50.0
 sympy==1.14.0
 tavily-python==0.7.12
