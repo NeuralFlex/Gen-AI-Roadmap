@@ -28,6 +28,7 @@ faiss_index_user123
 *.sqlite-wal
 *.sqlite-shm
 *.db
+.env.local
 
 **/__init__.py
 
