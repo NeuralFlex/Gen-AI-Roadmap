@@ -26,7 +26,7 @@ certifi==2025.10.5
 cffi==2.0.0
 charset-normalizer==3.4.3
 chroma-hnswlib==0.7.6
-chromadb==0.5.11
+chromadb==1.3.2
 ci-info==0.3.0
 click==8.3.0
 coloredlogs==15.0.1
@@ -43,7 +43,6 @@ distro==1.9.0
 durationpy==0.10
 etelemetry==0.3.1
 executing==2.2.1
-faiss-cpu==1.12.0
 fastapi==0.118.3
 fastjsonschema==2.21.2
 filelock==3.20.0
@@ -186,13 +185,12 @@ pexpect==4.9.0
 pillow==11.0.0
 platformdirs==4.4.0
 ply==3.11
-posthog==6.7.12
+posthog==5.4.0
 prometheus_client==0.23.1
 prompt_toolkit==3.0.52
 propcache==0.4.0
 proto-plus==1.26.1
-# protobuf==6.33.0
-protobuf>=3.20.2,<6.0.0dev
+protobuf==6.33.0
 prov==2.1.1
 psutil==7.1.0
 psycopg==3.2.12
@@ -204,6 +202,7 @@ puremagic==1.30
 pyarrow==21.0.0
 pyasn1==0.6.1
 pyasn1_modules==0.4.2
+pybase64==1.4.2
 pycparser==2.23
 pydantic==2.11.10
 pydantic-settings==2.11.0
