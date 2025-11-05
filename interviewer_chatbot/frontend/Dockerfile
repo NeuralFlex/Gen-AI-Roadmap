@@ -4,7 +4,8 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
-RUN pip install streamlit requests python-dotenv
+COPY frontend/requirements.txt .
+RUN pip install -r requirements.txt
 
 COPY frontend/ .
 
