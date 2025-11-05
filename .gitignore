@@ -34,3 +34,4 @@ faiss_index_user123
 
 **/lg-ev*/
 **.bin
+**.env.docker
