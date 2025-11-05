@@ -8,7 +8,7 @@ backcall==0.2.0
 beautifulsoup4==4.11.2
 beniget==0.4.1
 blinker==1.5
-Brlapi==0.8.4
+# Brlapi==0.8.4
 Brotli==1.0.9
 certifi==2022.9.24
 chardet==5.1.0
