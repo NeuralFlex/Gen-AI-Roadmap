@@ -5,12 +5,13 @@ import logging
 from typing import Optional
 from langchain_core.documents import Document
 import os
+from config.settings import settings
 
 logger = logging.getLogger(__name__)
 
-CHROMA_API_KEY = os.getenv("CHROMA_API_KEY")
-CHROMA_TENANT = os.getenv("CHROMA_TENANT")
-CHROMA_DATABASE = os.getenv("CHROMA_DATABASE")
+CHROMA_API_KEY = settings.chroma_api_key
+CHROMA_TENANT = settings.chroma_tenant
+CHROMA_DATABASE = settings.chroma_database
 
 client = chromadb.CloudClient(
     api_key=CHROMA_API_KEY,
@@ -40,3 +41,23 @@ def create_vectorstore(
 def load_vectorstore(user_id: str = "default_user") -> Optional[Collection]:
     collection_name = f"interviewer-chatbot-{user_id}"
     return client.get_or_create_collection(collection_name)
+
+
+def delete_vectorstore(user_id: str = "default_user") -> bool:
+    """
+    Delete a user's Chroma Cloud collection.
+
+    Args:
+        user_id (str): Identifier for the user.
+
+    Returns:
+        bool: True if deleted successfully, False otherwise.
+    """
+    try:
+        collection_name = f"interviewer-chatbot-{user_id}"
+        client.delete_collection(collection_name)
+        logger.info("Deleted Chroma Cloud collection: %s", collection_name)
+        return True
+    except Exception as e:
+        logger.error("Failed to delete vectorstore: %s", e, exc_info=True)
+        return False

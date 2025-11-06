@@ -4,7 +4,7 @@ import uuid
 from typing import Optional
 
 from utils.cv_tools import extract_text_from_pdf_bytes, chunk_cv_text
-from services.vectorstore_service import create_vectorstore
+from services.vectorstore_service import create_vectorstore, delete_vectorstore
 from graph.graph import compiled_graph
 
 router = APIRouter(tags=["Interview"])
@@ -128,6 +128,9 @@ async def continue_interview(req: ContinueRequest):
             }
 
         if final_state.get("feedback"):
+            user_id = final_state.get("user_id", "default_user")
+            delete_vectorstore(user_id)
+
             return {
                 "thread_id": req.thread_id,
                 "status": "completed",
