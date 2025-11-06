@@ -2,7 +2,6 @@ import json
 import os
 from typing import Any, Dict, Mapping, List
 
-from langchain_community.vectorstores import FAISS
 from utils.logger import setup_logger
 from utils.generation import _safe_generate
 from services.tavily_client import tavily_service
@@ -18,73 +17,68 @@ from config.prompts import (
 from utils.sanitizer import sanitize_state
 from utils.generation import safe_parse_json
 import textwrap
+from services.vectorstore_service import load_vectorstore
 
 logger = setup_logger(__name__)
 
 
 def decide_retrieval(query: str, user_id: str = "default_user") -> (bool, float):
     """
-    Decide if retrieval is needed based on similarity score from FAISS.
-
-    Args:
-        query (str): User query or current answer.
-        user_id (str): User identifier for personalized FAISS index.
+    Decide if retrieval is needed based on Chroma Cloud distances.
 
     Returns:
-        Tuple[bool, float]: Tuple of (needs_retrieval, min_distance)
+        Tuple[needs_retrieval: bool, min_distance: float]
     """
     try:
-        index_dir = os.path.join(os.getcwd(), f"faiss_index_{user_id}")
-        if not os.path.exists(index_dir):
-            logger.warning(
-                "No FAISS index found for user '%s', skipping retrieval.", user_id
-            )
-            return False, 1.0
+        collection = load_vectorstore(user_id)
+        if not collection:
+            logger.info("No collection for user '%s', forcing retrieval.", user_id)
+            return True, 1.0
 
-        vectorstore = FAISS.load_local(
-            index_dir, embeddings, allow_dangerous_deserialization=True
+        query_emb = embeddings.embed_query(query)
+        results = collection.query(query_embeddings=[query_emb], n_results=3)
+
+        distances = results.get("distances", [[]])[0]
+
+        if not distances:
+            logger.info("No docs found in vectorstore, forcing retrieval.")
+            return True, 1.0
+
+        min_distance = float(min(distances))
+
+        DISTANCE_THRESHOLD = 0.78
+        needs_retrieval = min_distance > DISTANCE_THRESHOLD
+
+        logger.info(
+            "Decide retrieval -> min_distance: %.4f, needs_retrieval: %s",
+            min_distance,
+            needs_retrieval,
         )
-        top_chunks = vectorstore.similarity_search_with_score(query, k=3)
-        if not top_chunks:
-            return False, 1.0
-
-        min_distance = min(score for _, score in top_chunks)
-        needs_retrieval = min_distance < 0.55
-        return bool(needs_retrieval), float(min_distance)
+        return needs_retrieval, min_distance
 
     except Exception as e:
-        logger.error("Retrieval decision error for user '%s': %s", user_id, e)
-        return False, 1.0
+        logger.error("Retrieval decision error: %s", e, exc_info=True)
+        return True, 1.0
 
 
 def setup_node(state: Mapping[str, Any]) -> Dict[str, Any]:
-    """
-    Initialize the interview node. If step > 0, sanitize existing state.
-
-    Args:
-        state (Mapping[str, Any]): Current state.
-
-    Returns:
-        Dict[str, Any]: Updated sanitized state.
-    """
     state = dict(state)
     if state.get("step", 0) > 0:
         return sanitize_state(state)
-    logger.info("✅ Running setup_node")
 
+    logger.info("✅ Running setup_node")
     topic = state.get("topic", "").strip()
     question_type = state.get("question_type", "broad_followup").strip()
     user_id = state.get("user_id", "default_user")
     retrieved_context = ""
 
     try:
-        index_dir = os.path.join(os.getcwd(), f"faiss_index_{user_id}")
-        if os.path.exists(index_dir):
-            vectorstore = FAISS.load_local(
-                index_dir, embeddings, allow_dangerous_deserialization=True
-            )
-            docs = vectorstore.similarity_search(topic, k=3)
-            retrieved_context = "\n\n".join([doc.page_content for doc in docs])
+        collection = load_vectorstore(user_id)
+        if collection:
+            query_emb = embeddings.embed_query(topic)
+            results = collection.query(query_embeddings=[query_emb], n_results=3)
+            docs = results.get("documents", [[]])[0]
+            retrieved_context = "\n\n".join(docs)
             logger.info("Retrieved setup context for topic: %s", topic)
     except Exception as e:
         logger.error("Setup retrieval failed for user '%s': %s", user_id, e)
@@ -155,17 +149,7 @@ def get_answer_node(state: Mapping[str, Any]) -> Dict[str, Any]:
 
 
 def retrieval_decision_node(state: Mapping[str, Any]) -> Dict[str, Any]:
-    """
-    Decide if retrieval is needed based on the current answer.
-
-    Args:
-        state (Mapping[str, Any]): Current state.
-
-    Returns:
-        Dict[str, Any]: State updated with retrieval decision and similarity score.
-    """
     logger.info("✅ Running retrieval_decision_node")
-
     state = dict(state)
     current_answer = state.get("current_answer", "")
     user_id = state.get("user_id", "default_user")
@@ -186,17 +170,11 @@ def retrieval_decision_node(state: Mapping[str, Any]) -> Dict[str, Any]:
 
 def retrieval_node(state: Mapping[str, Any]) -> Dict[str, Any]:
     """
-    Perform FAISS retrieval if needed and update the state with retrieved context.
-
-    Args:
-        state (Mapping[str, Any]): Current state.
-
-    Returns:
-        Dict[str, Any]: State updated with retrieved context or None.
+    Retrieve relevant documents from Chroma Cloud collection for the user.
     """
     logger.info("✅ Running retrieval_node")
-
     state = dict(state)
+
     if not state.get("needs_retrieval", False):
         return sanitize_state({**state, "retrieved_context": None})
 
@@ -204,16 +182,27 @@ def retrieval_node(state: Mapping[str, Any]) -> Dict[str, Any]:
     query = state.get("current_answer", state.get("topic", ""))
 
     try:
-        index_dir = os.path.join(os.getcwd(), f"faiss_index_{user_id}")
-        vectorstore = FAISS.load_local(
-            index_dir, embeddings, allow_dangerous_deserialization=True
-        )
-        docs = vectorstore.similarity_search(query, k=3)
-        retrieved_context = "\n\n".join([doc.page_content for doc in docs])
-        return sanitize_state({**state, "retrieved_context": retrieved_context})
+        collection = load_vectorstore(user_id)
+        if collection:
+            query_emb = embeddings.embed_query(query)
+            results = collection.query(query_embeddings=[query_emb], n_results=3)
+
+            docs = results.get("documents", [[]])[0]
+            retrieved_context = "\n\n".join(docs) if docs else None
+
+            logger.info(
+                "Retrieved %d docs for query '%s' (user: %s)",
+                len(docs),
+                query,
+                user_id,
+            )
+
+            return sanitize_state({**state, "retrieved_context": retrieved_context})
+
     except Exception as e:
-        logger.error("Retrieval failed for user '%s': %s", user_id, e)
-        return sanitize_state({**state, "retrieved_context": None})
+        logger.error("Retrieval failed for user '%s': %s", user_id, e, exc_info=True)
+
+    return sanitize_state({**state, "retrieved_context": None})
 
 
 def tavily_search_node(state: Mapping[str, Any]) -> Dict[str, Any]:
@@ -366,7 +355,6 @@ def evaluate_question_node(state: Mapping[str, Any]) -> Dict[str, Any]:
         )
     logger.info(f"✅ Collected {len(feedback_list)} feedback items so far.")
 
-    # Convert feedback list to a readable string for frontend
     feedback_text = "\n\n".join(
         f"Q Feedback: {item['question_feedback'].get('feedback', '')}\n"
         f"A Feedback: {item['answer_feedback'].get('feedback', '')}"

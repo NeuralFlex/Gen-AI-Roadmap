@@ -13,7 +13,6 @@ st.set_page_config(page_title="AI Interviewer", page_icon="brain")
 BACKEND_START_ENDPOINT = f"{BACKEND_URL}/start_interview"
 BACKEND_CONTINUE_ENDPOINT = f"{BACKEND_URL}/continue_interview"
 
-
 for key in [
     "interview_started",
     "messages",
@@ -67,7 +66,6 @@ if st.session_state.show_report:
         ):
             st.success("Downloaded!")
 
-
 elif not st.session_state.interview_started:
     st.title("AI Interviewer Setup")
 
@@ -77,7 +75,7 @@ elif not st.session_state.interview_started:
     st.session_state.job_title = st.text_input(
         "Job Title", placeholder="e.g. JS Intern"
     )
-    cv_file = st.file_uploader("Upload CV (optional)", type=["pdf"])
+    cv_file = st.file_uploader("Upload CV (required)", type=["pdf"])
 
     st.subheader("Choose Question Style")
     style = st.radio(
@@ -100,9 +98,11 @@ elif not st.session_state.interview_started:
     if st.button("Start Interview"):
         if not st.session_state.job_title:
             st.warning("Enter job title")
+        elif not cv_file:
+            st.warning("Upload your CV to continue")
         else:
-            cv_name = cv_file.name if cv_file else "Not uploaded"
-            files = {"cv": ("cv.pdf", cv_file, "application/pdf")} if cv_file else None
+            cv_name = cv_file.name
+            files = {"cv": ("cv.pdf", cv_file, "application/pdf")}
             data = {
                 "job_title": st.session_state.job_title,
                 "question_type": qmap[style],
