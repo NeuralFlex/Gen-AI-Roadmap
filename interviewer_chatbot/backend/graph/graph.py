@@ -13,9 +13,9 @@ from graph.nodes import (
 )
 from utils.logger import setup_logger
 from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.sqlite import SqliteSaver
 import psycopg
 from langgraph.checkpoint.postgres import PostgresSaver
-import os
 from config.settings import settings
 
 logger = setup_logger(__name__)
@@ -104,9 +104,6 @@ def get_postgres_checkpointer():
     """
     try:
 
-        from langgraph.checkpoint.postgres import PostgresSaver
-        import psycopg
-
         conn = psycopg.connect(settings.database_url)
         checkpointer = PostgresSaver(conn)
 
@@ -125,7 +122,6 @@ def get_postgres_checkpointer():
 
     try:
         import sqlite3
-        from langgraph.checkpoint.sqlite import SqliteSaver
 
         conn = sqlite3.connect("checkpoints.sqlite", check_same_thread=False)
         checkpointer = SqliteSaver(conn)
