@@ -1,4 +1,3 @@
-```markdown
 # WebRTC Tasks — Local Audio/Video Streaming
 
 This folder contains two WebRTC tasks demonstrating **real-time audio and video streaming** between browser tabs and/or a Python server.  
