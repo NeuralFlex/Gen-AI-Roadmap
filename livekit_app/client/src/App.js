@@ -10,7 +10,7 @@ function App() {
   const [token, setToken] = useState(null);
 
   useEffect(() => {
-    fetch("http://localhost:3000/token", {
+    fetch("http://localhost:3001/token", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ room: roomName, identity: userName }),
