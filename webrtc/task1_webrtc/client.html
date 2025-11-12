@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+  <body>
+    <h2>WebRTC → Python Demo</h2>
+    <video id="local" autoplay muted playsinline width="480"></video>
+    <script>
+      const pc = new RTCPeerConnection({
+        iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+      });
+
+      const localVideo = document.getElementById("local");
+
+      async function start() {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        localVideo.srcObject = stream;
+
+        for (const track of stream.getTracks()) {
+          pc.addTrack(track, stream);
+        }
+
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+
+        await new Promise(resolve => {
+          if (pc.iceGatheringState === "complete") resolve();
+          pc.addEventListener("icegatheringstatechange", () => {
+            if (pc.iceGatheringState === "complete") resolve();
+          });
+        });
+
+        const response = await fetch("/offer", {
+          method: "POST",
+          body: JSON.stringify({ sdp: pc.localDescription.sdp, type: pc.localDescription.type }),
+          headers: { "Content-Type": "application/json" }
+        });
+        const answer = await response.json();
+
+        await pc.setRemoteDescription(answer);
+        console.log("✅ Connected — streaming webcam to Python!");
+      }
+
+      start().catch(console.error);
+    </script>
+  </body>
+</html>

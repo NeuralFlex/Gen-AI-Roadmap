@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Peer 1 - Sender</title>
+  <style>
+    video { width: 320px; border: 2px solid #4caf50; margin: 10px; }
+  </style>
+</head>
+<body>
+  <h2>📤 Peer 1 - Sending Camera Feed</h2>
+  <video id="localVideo" autoplay playsinline muted></video>
+  <script>
+    const ws = new WebSocket("ws://localhost:9000/ws?room=room1");
+    const pc = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
+
+    const localVideo = document.getElementById("localVideo");
+
+    async function start() {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      localVideo.srcObject = stream;
+      stream.getTracks().forEach(track => pc.addTrack(track, stream));
+    }
+
+    ws.onmessage = async (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === "answer") {
+        await pc.setRemoteDescription(new RTCSessionDescription(data));
+      } else if (data.type === "candidate") {
+        await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+      }
+    };
+
+    pc.onicecandidate = (event) => {
+      if (event.candidate) {
+        ws.send(JSON.stringify({ type: "candidate", candidate: event.candidate }));
+      }
+    };
+
+    async function createOffer() {
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      ws.send(JSON.stringify(offer));
+    }
+
+    ws.onopen = async () => {
+      console.log("Connected to signaling server");
+      await start();
+      await createOffer();
+    };
+  </script>
+</body>
+</html>

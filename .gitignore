@@ -9,6 +9,8 @@ interviewer_chatbot/.env
 interviewer_chatbot/venv/
 interviewer_chatbot/__pycache__/
 interviewer_chatbot/.ipynb_checkpoints/
+webrtc/task1_webrtc/venv
+webrtc/task2_webrtc/venv
 
 .vscode/
 .env
