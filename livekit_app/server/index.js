@@ -56,9 +56,10 @@ const clientBuildPath = path.join(__dirname, "../client/build");
 
 app.use(express.static(clientBuildPath));
 
-app.get("/*", (req, res) => {
-  res.sendFile(path.join(clientBuildPath, "index.html"));
-});
+// app.get("*", (req, res) => {
+//   res.sendFile(path.join(clientBuildPath, "index.html"));
+// });
+
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));

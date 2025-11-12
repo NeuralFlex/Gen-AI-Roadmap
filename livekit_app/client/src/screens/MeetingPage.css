@@ -1,0 +1,53 @@
+/* src/pages/MeetingPage.css */
+
+.meeting-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(to bottom right, #e0e7ff, #ede9fe);
+  color: #1e293b;
+}
+
+.meeting-header {
+  background-color: white;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  padding: 15px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.meeting-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #4f46e5;
+}
+
+.meeting-header p {
+  font-size: 0.9rem;
+  color: #4b5563;
+}
+
+.meeting-info-bar {
+  background-color: white;
+  padding: 10px 30px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #374151;
+  font-size: 0.95rem;
+}
+
+.meeting-video-area {
+  flex: 1;
+  padding: 20px;
+}
+
+.loading-text {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #4f46e5;
+  text-align: center;
+  margin-top: 30vh;
+}
