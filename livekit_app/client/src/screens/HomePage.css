@@ -1,0 +1,98 @@
+/* src/pages/HomePage.css */
+
+.home-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(to bottom right, #e0e7ff, #ede9fe);
+  color: #1e293b;
+  padding: 20px;
+}
+
+.home-title {
+  font-size: 3rem;
+  font-weight: 800;
+  margin-bottom: 2rem;
+  color: #4f46e5;
+  text-align: center;
+}
+
+.button {
+  padding: 15px 30px;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, background-color 0.2s;
+  margin: 10px;
+  border: none;
+}
+
+.button:hover {
+  transform: scale(1.05);
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.create-btn {
+  background-color: #4f46e5;
+  color: white;
+}
+
+.create-btn:hover {
+  background-color: #4338ca;
+}
+
+.join-btn {
+  background-color: white;
+  color: #4f46e5;
+  border: 2px solid #4f46e5;
+}
+
+.join-btn:hover {
+  background-color: #ede9fe;
+}
+
+.passcode-input {
+  width: 250px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 2px solid #c7d2fe;
+  text-align: center;
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+.passcode-input:focus {
+  outline: none;
+  border-color: #818cf8;
+  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.3);
+}
+
+.meeting-card {
+  background-color: white;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  text-align: center;
+  width: 100%;
+  max-width: 400px;
+  margin-top: 20px;
+}
+
+.meeting-card h2 {
+  color: #4f46e5;
+  font-size: 1.8rem;
+  margin-bottom: 15px;
+}
+
+.error-text {
+  color: #dc2626;
+  margin-top: 20px;
+  font-weight: 600;
+}

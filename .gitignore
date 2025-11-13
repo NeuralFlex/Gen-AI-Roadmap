@@ -1,16 +1,16 @@
-# Ignore environment variables
 interviewer_chatbot/.env
 
-# Python cache
 *.pyc
 *.pyo
-*.json
-# Jupyter notebook checkpoints
 interviewer_chatbot/venv/
 interviewer_chatbot/__pycache__/
 interviewer_chatbot/.ipynb_checkpoints/
-webrtc/task1_webrtc/venv
-webrtc/task2_webrtc/venv
+webrtc/task1_webrtc/venv/
+livekit_app/lk-ev
+livekit_app/server/node_modules
+livekit_app/client/node_modules
+
+webrtc/task2_webrtc/venv/
 
 .vscode/
 .env
@@ -22,11 +22,9 @@ faiss_index_user123
 
 *.pdf
 
-# Ignore SQLite database files
 *.sqlite
 *.sqlite3
 
-# Ignore SQLite temporary and journal files
 *.sqlite-wal
 *.sqlite-shm
 *.db

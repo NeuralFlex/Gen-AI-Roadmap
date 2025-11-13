@@ -1,0 +1,17 @@
+[build]
+builder = "nixpacks"
+root = "livekit_app/server"  # backend is the main service
+buildCommand = """
+# 1. Build frontend
+cd ../client
+npm install
+npm run build
+# 2. Copy build to backend public folder
+rm -rf ../server/public
+mkdir -p ../server/public
+cp -r build/* ../server/public
+# 3. Install backend dependencies
+cd ../server
+npm install
+"""
+startCommand = "npm start"
